@@ -42,3 +42,22 @@ button,
   gap: 8px;
   align-items: center;
 }
+
+.settings-form {
+  margin-top: 16px;
+  border: 1px solid #ccc;
+  padding: 12px;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag-chip {
+  border: 1px solid #666;
+  background: #efefef;
+  border-radius: 999px;
+  padding: 4px 10px;
+}

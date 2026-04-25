@@ -5,6 +5,7 @@ import { INITIAL_ONBOARDING } from './constants/onboarding'
 import DashboardPage from './pages/DashboardPage'
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
+import SettingsPage from './pages/SettingsPage'
 import SignupPage from './pages/SignupPage'
 import CaregiverInfoStep from './pages/onboarding/CaregiverInfoStep'
 import DonorInfoStep from './pages/onboarding/DonorInfoStep'
@@ -64,6 +65,7 @@ function App() {
         <Route path="/onboarding/needs-tags" element={<NeedsTagsStep onboarding={onboarding} setOnboarding={setOnboarding} submitOnboarding={submitOnboarding} />} />
         <Route path="/onboarding/recommendations" element={<RecommendationsStep submitOnboarding={submitOnboarding} />} />
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

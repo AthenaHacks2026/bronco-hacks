@@ -9,6 +9,9 @@ function DashboardPage() {
     <main className="page">
       <h1>Welcome</h1>
       <p>This is your dashboard page.</p>
+      <div className="button-row">
+        <Link className="button-link" to="/settings">Settings</Link>
+      </div>
       <p>
         <Link to="/" onClick={handleLogout}>
           Logout
