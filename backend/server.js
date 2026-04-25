@@ -1,9 +1,11 @@
-const express = require('express');
+const express = require("express");
 const cors = require("cors");
-require("dotenv").config()
+require("dotenv").config();
+
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
+const itemRoutes = require("./routes/itemRoutes");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -17,15 +19,16 @@ app.use(
 );
 
 app.get("/", (req, res) => {
-    res.send("Hi from the backend!");
+  res.send("Hi from the backend!");
 });
 
 app.get("/api/health", (req, res) => {
-    res.json({ ok: true, service: "backend", database: "connected" });
+  res.json({ ok: true, service: "backend", database: "connected" });
 });
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/items", itemRoutes);
 
 const startServer = async () => {
   try {
