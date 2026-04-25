@@ -5,7 +5,7 @@ import './App.css'
 function LandingPage() {
   return (
     <main className="page">
-      <h1>Wesite Name!</h1>
+      <h1>Website Name!</h1>
       <p>Choose an option below.</p>
       <div className="button-row">
         <Link className="button-link" to="/login">
@@ -45,7 +45,7 @@ function SignupPage() {
 
       if (data.token) {
         localStorage.setItem('token', data.token)
-        navigate('/user-home')
+        navigate('/dashboard')
       }
     } catch (error) {
       setMessage(`Network error: ${error.message}`)
@@ -112,7 +112,7 @@ function LoginPage() {
 
       if (data.token) {
         localStorage.setItem('token', data.token)
-        navigate('/user-home')
+        navigate('/dashboard')
       }
     } catch (error) {
       setMessage(`Network error: ${error.message}`)
@@ -142,15 +142,15 @@ function LoginPage() {
   )
 }
 
-function UserHomePage() {
+function DashboardPage() {
   const handleLogout = () => {
     localStorage.removeItem('token')
   }
 
   return (
     <main className="page">
-      <h1>Wecome</h1>
-      <p>This is your user home page.</p>
+      <h1>Welcome</h1>
+      <p>This is your dashboard page.</p>
       <p>
         <Link to="/" onClick={handleLogout}>
           Logout
@@ -167,7 +167,7 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
-        <Route path="/user-home" element={<UserHomePage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
