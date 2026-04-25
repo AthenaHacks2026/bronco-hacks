@@ -34,6 +34,22 @@ router.post("/signup", async (req, res) => {
       name,
       email,
       passwordHash,
+      onboarding: {
+        userType: null,
+        donorInfo: {
+          location: null,
+          streetAddress: null,
+          phone: null,
+        },
+        caregiverType: null,
+        pregnantWeeks: null,
+        postpartumWeeks: null,
+        childAgeValue: null,
+        childAgeUnit: null,
+        needsConfidence: null,
+        needTags: [],
+        completedAt: null,
+      },
     });
 
     const token = signToken(user._id);

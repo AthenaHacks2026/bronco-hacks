@@ -2,9 +2,11 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { NEED_TAG_OPTIONS } from '../../constants/onboarding'
 
-function NeedsTagsStep({ onboarding, setOnboarding }) {
+function NeedsTagsStep({ onboarding, setOnboarding, submitOnboarding }) {
   const navigate = useNavigate()
   const [customTagInput, setCustomTagInput] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
+  const [message, setMessage] = useState('')
   const canContinue = onboarding.needTags.length > 0
 
   const toggleTag = (tag) => {
@@ -25,6 +27,19 @@ function NeedsTagsStep({ onboarding, setOnboarding }) {
       return { ...prev, needTags: [...prev.needTags, cleaned] }
     })
     setCustomTagInput('')
+  }
+
+  const handleContinue = async () => {
+    if (!canContinue || isSaving) return
+    setIsSaving(true)
+    setMessage('')
+    const result = await submitOnboarding()
+    if (result.ok) {
+      navigate('/dashboard')
+    } else {
+      setMessage(result.message || 'Failed to save onboarding.')
+    }
+    setIsSaving(false)
   }
 
   return (
@@ -58,14 +73,15 @@ function NeedsTagsStep({ onboarding, setOnboarding }) {
           Selected: <strong>{onboarding.needTags.join(', ')}</strong>
         </p>
       )}
+      {message && <p>{message}</p>}
 
       <div className="button-row">
         <button type="button" onClick={() => navigate('/onboarding/needs')}>
           Back
         </button>
         {canContinue && (
-          <button type="button" onClick={() => navigate('/dashboard')}>
-            Continue
+          <button type="button" onClick={handleContinue} disabled={isSaving}>
+            {isSaving ? 'Saving...' : 'Continue'}
           </button>
         )}
       </div>

@@ -20,6 +20,32 @@ import UserTypeStep from './pages/onboarding/UserTypeStep'
 function App() {
   const [onboarding, setOnboarding] = useState(INITIAL_ONBOARDING)
   const resetOnboarding = () => setOnboarding(INITIAL_ONBOARDING)
+  const submitOnboarding = async () => {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      return { ok: false, message: 'Missing auth token. Please log in again.' }
+    }
+
+    try {
+      const response = await fetch('/api/users/onboarding', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ onboarding }),
+      })
+
+      const data = await response.json()
+      if (!response.ok) {
+        return { ok: false, message: data.message || 'Failed to save onboarding.' }
+      }
+
+      return { ok: true }
+    } catch (error) {
+      return { ok: false, message: `Network error: ${error.message}` }
+    }
+  }
 
   return (
     <BrowserRouter>
@@ -29,14 +55,14 @@ function App() {
         <Route path="/signup" element={<SignupPage resetOnboarding={resetOnboarding} />} />
         <Route path="/onboarding/user-type" element={<UserTypeStep onboarding={onboarding} setOnboarding={setOnboarding} />} />
         <Route path="/onboarding/donor-info" element={<DonorInfoStep onboarding={onboarding} setOnboarding={setOnboarding} />} />
-        <Route path="/onboarding/donor-thanks" element={<DonorThanksStep />} />
+        <Route path="/onboarding/donor-thanks" element={<DonorThanksStep submitOnboarding={submitOnboarding} />} />
         <Route path="/onboarding/caregiver-info" element={<CaregiverInfoStep onboarding={onboarding} setOnboarding={setOnboarding} />} />
         <Route path="/onboarding/pregnant" element={<PregnantStep onboarding={onboarding} setOnboarding={setOnboarding} />} />
         <Route path="/onboarding/postpartum" element={<PostpartumStep onboarding={onboarding} setOnboarding={setOnboarding} />} />
         <Route path="/onboarding/other" element={<OtherStep onboarding={onboarding} setOnboarding={setOnboarding} />} />
         <Route path="/onboarding/needs" element={<NeedsStep onboarding={onboarding} setOnboarding={setOnboarding} />} />
-        <Route path="/onboarding/needs-tags" element={<NeedsTagsStep onboarding={onboarding} setOnboarding={setOnboarding} />} />
-        <Route path="/onboarding/recommendations" element={<RecommendationsStep />} />
+        <Route path="/onboarding/needs-tags" element={<NeedsTagsStep onboarding={onboarding} setOnboarding={setOnboarding} submitOnboarding={submitOnboarding} />} />
+        <Route path="/onboarding/recommendations" element={<RecommendationsStep submitOnboarding={submitOnboarding} />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
