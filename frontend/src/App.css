@@ -1,0 +1,38 @@
+.page {
+  max-width: 420px;
+  margin: 40px auto;
+  padding: 0 16px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+label {
+  font-weight: 600;
+}
+
+input {
+  padding: 8px;
+}
+
+button,
+.button-link {
+  display: inline-block;
+  padding: 8px 12px;
+  border: 1px solid #222;
+  background: #f3f3f3;
+  color: #111;
+  text-decoration: none;
+  cursor: pointer;
+  width: fit-content;
+}
+
+.button-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}

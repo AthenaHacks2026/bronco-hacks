@@ -1,0 +1,9 @@
+{
+  "name": "bronco-hacks",
+  "private": true,
+  "scripts": {
+    "dev": "start-all.bat",
+    "backend": "npm --prefix backend run dev",
+    "frontend": "npm --prefix frontend run dev"
+  }
+}
