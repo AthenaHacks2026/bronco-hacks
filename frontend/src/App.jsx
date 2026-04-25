@@ -1,172 +1,42 @@
 import { useState } from 'react'
-import { BrowserRouter, Link, Navigate, Route, Routes, useNavigate } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import './App.css'
-
-function LandingPage() {
-  return (
-    <main className="page">
-      <h1>Website Name!</h1>
-      <p>Choose an option below.</p>
-      <div className="button-row">
-        <Link className="button-link" to="/login">
-          Login
-        </Link>
-        <Link className="button-link" to="/signup">
-          Sign Up
-        </Link>
-      </div>
-    </main>
-  )
-}
-
-function SignupPage() {
-  const [form, setForm] = useState({ name: '', email: '', password: '' })
-  const [message, setMessage] = useState('')
-  const navigate = useNavigate()
-
-  const handleChange = (event) => {
-    const { name, value } = event.target
-    setForm((current) => ({ ...current, [name]: value }))
-  }
-
-  const handleSubmit = async (event) => {
-    event.preventDefault()
-    setMessage('Loading...')
-
-    try {
-      const response = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      })
-
-      const data = await response.json()
-      setMessage(data.message || `${response.status} ${response.statusText}`)
-
-      if (data.token) {
-        localStorage.setItem('token', data.token)
-        navigate('/dashboard')
-      }
-    } catch (error) {
-      setMessage(`Network error: ${error.message}`)
-    }
-  }
-
-  return (
-    <main className="page">
-      <h1>Sign Up</h1>
-      <form className="form" onSubmit={handleSubmit}>
-        <label htmlFor="name">Name</label>
-        <input id="name" name="name" value={form.name} onChange={handleChange} required />
-
-        <label htmlFor="email">Email</label>
-        <input id="email" name="email" type="email" value={form.email} onChange={handleChange} required />
-
-        <label htmlFor="password">Password</label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          value={form.password}
-          onChange={handleChange}
-          minLength={8}
-          required
-        />
-
-        <button type="submit">Create Account</button>
-      </form>
-      <p>{message}</p>
-      <p>
-        Already have an account? <Link to="/login">Go to Login</Link>
-      </p>
-      <p>
-        <Link to="/">Back</Link>
-      </p>
-    </main>
-  )
-}
-
-function LoginPage() {
-  const [form, setForm] = useState({ email: '', password: '' })
-  const [message, setMessage] = useState('')
-  const navigate = useNavigate()
-
-  const handleChange = (event) => {
-    const { name, value } = event.target
-    setForm((current) => ({ ...current, [name]: value }))
-  }
-
-  const handleSubmit = async (event) => {
-    event.preventDefault()
-    setMessage('Loading...')
-
-    try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      })
-
-      const data = await response.json()
-      setMessage(data.message || `${response.status} ${response.statusText}`)
-
-      if (data.token) {
-        localStorage.setItem('token', data.token)
-        navigate('/dashboard')
-      }
-    } catch (error) {
-      setMessage(`Network error: ${error.message}`)
-    }
-  }
-
-  return (
-    <main className="page">
-      <h1>Login</h1>
-      <form className="form" onSubmit={handleSubmit}>
-        <label htmlFor="email">Email</label>
-        <input id="email" name="email" type="email" value={form.email} onChange={handleChange} required />
-
-        <label htmlFor="password">Password</label>
-        <input id="password" name="password" type="password" value={form.password} onChange={handleChange} required />
-
-        <button type="submit">Login</button>
-      </form>
-      <p>{message}</p>
-      <p>
-        Need an account? <Link to="/signup">Go to Sign Up</Link>
-      </p>
-      <p>
-        <Link to="/">Back</Link>
-      </p>
-    </main>
-  )
-}
-
-function DashboardPage() {
-  const handleLogout = () => {
-    localStorage.removeItem('token')
-  }
-
-  return (
-    <main className="page">
-      <h1>Welcome</h1>
-      <p>This is your dashboard page.</p>
-      <p>
-        <Link to="/" onClick={handleLogout}>
-          Logout
-        </Link>
-      </p>
-    </main>
-  )
-}
+import { INITIAL_ONBOARDING } from './constants/onboarding'
+import DashboardPage from './pages/DashboardPage'
+import LandingPage from './pages/LandingPage'
+import LoginPage from './pages/LoginPage'
+import SignupPage from './pages/SignupPage'
+import CaregiverInfoStep from './pages/onboarding/CaregiverInfoStep'
+import DonorInfoStep from './pages/onboarding/DonorInfoStep'
+import DonorThanksStep from './pages/onboarding/DonorThanksStep'
+import NeedsStep from './pages/onboarding/NeedsStep'
+import NeedsTagsStep from './pages/onboarding/NeedsTagsStep'
+import OtherStep from './pages/onboarding/OtherStep'
+import PostpartumStep from './pages/onboarding/PostpartumStep'
+import PregnantStep from './pages/onboarding/PregnantStep'
+import RecommendationsStep from './pages/onboarding/RecommendationsStep'
+import UserTypeStep from './pages/onboarding/UserTypeStep'
 
 function App() {
+  const [onboarding, setOnboarding] = useState(INITIAL_ONBOARDING)
+  const resetOnboarding = () => setOnboarding(INITIAL_ONBOARDING)
+
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignupPage />} />
+        <Route path="/signup" element={<SignupPage resetOnboarding={resetOnboarding} />} />
+        <Route path="/onboarding/user-type" element={<UserTypeStep onboarding={onboarding} setOnboarding={setOnboarding} />} />
+        <Route path="/onboarding/donor-info" element={<DonorInfoStep onboarding={onboarding} setOnboarding={setOnboarding} />} />
+        <Route path="/onboarding/donor-thanks" element={<DonorThanksStep />} />
+        <Route path="/onboarding/caregiver-info" element={<CaregiverInfoStep onboarding={onboarding} setOnboarding={setOnboarding} />} />
+        <Route path="/onboarding/pregnant" element={<PregnantStep onboarding={onboarding} setOnboarding={setOnboarding} />} />
+        <Route path="/onboarding/postpartum" element={<PostpartumStep onboarding={onboarding} setOnboarding={setOnboarding} />} />
+        <Route path="/onboarding/other" element={<OtherStep onboarding={onboarding} setOnboarding={setOnboarding} />} />
+        <Route path="/onboarding/needs" element={<NeedsStep onboarding={onboarding} setOnboarding={setOnboarding} />} />
+        <Route path="/onboarding/needs-tags" element={<NeedsTagsStep onboarding={onboarding} setOnboarding={setOnboarding} />} />
+        <Route path="/onboarding/recommendations" element={<RecommendationsStep />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
