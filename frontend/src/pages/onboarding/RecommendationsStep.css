@@ -53,11 +53,20 @@
   height: 44px;
   border: 2px solid #83ae7f;
   border-radius: 999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  padding: 0 16px;
   font-size: 0.95rem;
   background-color: transparent;
+  color: #1f1f1f;
+  outline: none;
+}
+
+.search-bar::placeholder {
+  color: #9aa3af;
+}
+
+.search-bar:focus {
+  border-color: #5f8f5f;
+  box-shadow: 0 0 0 2px rgba(131, 174, 127, 0.2);
 }
 
 .recommendations-content {
@@ -90,6 +99,7 @@
   grid-template-columns: repeat(2, minmax(320px, 1fr));
   gap: 24px 28px;
   align-items: start;
+  margin-bottom: 36px;
 }
 
 .recommendation-card {
@@ -107,17 +117,18 @@
 
 .recommendation-images {
   display: flex;
-  gap: 10px;
-  margin-bottom: 12px;
+  gap: 12px;
+  margin-bottom: 14px;
   flex-wrap: nowrap;
 }
 
 .recommendation-image {
-  width: 86px;
-  height: 86px;
+  width: 80px;
+  height: 120px;
   object-fit: cover;
-  border-radius: 2px;
+  border-radius: 6px;
   background: #ececec;
+  display: block;
 }
 
 .view-items-button {
@@ -130,40 +141,14 @@
   font-size: 1.1rem;
   cursor: pointer;
   color: #1f1f1f;
-}
-
-.request-card {
-  width: 360px;
-  margin: 52px auto 0;
-  background: #ffffff;
-  border-radius: 14px;
-  padding: 26px 24px;
-  text-align: center;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-}
-
-.request-title {
-  margin: 0 0 10px;
-  font-size: 1.8rem;
-  font-weight: 800;
-}
-
-.request-text {
-  margin: 0 0 18px;
-  color: #6b7280;
-  font-size: 0.95rem;
-  line-height: 1.4;
-}
-
-.request-button {
-  background: #88b184;
-  color: #ffffff;
-  border: none;
-  border-radius: 999px;
-  padding: 12px 28px;
-  font-size: 0.95rem;
   font-weight: 700;
-  cursor: pointer;
+}
+
+.no-results {
+  text-align: center;
+  font-size: 1rem;
+  color: #6b7280;
+  margin: 24px 0 36px;
 }
 
 .button-row {
@@ -196,4 +181,27 @@
 .continue-button:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+  .recommendations-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .recommendation-images {
+    flex-wrap: wrap;
+  }
+
+  .header-center {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .recommendations-title {
+    font-size: 2.2rem;
+  }
+
+  .recommendations-subtitle {
+    font-size: 1rem;
+  }
 }
