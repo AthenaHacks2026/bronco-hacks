@@ -17,7 +17,10 @@ function UserTypeStep({ onboarding, setOnboarding }) {
   }
 
   const handleSelect = (type) => {
-    setOnboarding((prev) => ({ ...prev, userType: type }))
+    setOnboarding((prev) => ({
+      ...prev,
+      userType: prev.userType === type ? '' : type,
+    }))
   }
 
   return (
@@ -43,6 +46,10 @@ function UserTypeStep({ onboarding, setOnboarding }) {
             }`}
             onClick={() => handleSelect('caregiver')}
           >
+            {onboarding.userType === 'caregiver' && (
+              <span className="selected-check">✓</span>
+            )}
+
             <div className="user-type-card-inner">
               <div className="icon-circle pink">
                 <svg
@@ -65,8 +72,15 @@ function UserTypeStep({ onboarding, setOnboarding }) {
               <div className="user-type-text">
                 <h3>I'm a Caregiver</h3>
                 <p>
-                  I'm pregnant, postpartum, or caring for a child and need
-                  support finding essential items for my family.
+                  I'm pregnant, postpartum,
+                  <br />
+                  or caring for a child and
+                  <br />
+                  need support finding
+                  <br />
+                  essential items for my
+                  <br />
+                  family.
                 </p>
               </div>
             </div>
@@ -79,6 +93,10 @@ function UserTypeStep({ onboarding, setOnboarding }) {
             }`}
             onClick={() => handleSelect('donor')}
           >
+            {onboarding.userType === 'donor' && (
+              <span className="selected-check">✓</span>
+            )}
+
             <div className="user-type-card-inner">
               <div className="icon-circle green">
                 <svg
@@ -102,8 +120,15 @@ function UserTypeStep({ onboarding, setOnboarding }) {
               <div className="user-type-text">
                 <h3>I'm a Donor</h3>
                 <p>
-                  I have gently used baby items to donate and want to help
-                  families in my community who need support.
+                  I have gently used baby
+                  <br />
+                  items to donate and want to
+                  <br />
+                  help families in my
+                  <br />
+                  community who need
+                  <br />
+                  support.
                 </p>
               </div>
             </div>
@@ -116,6 +141,10 @@ function UserTypeStep({ onboarding, setOnboarding }) {
             }`}
             onClick={() => handleSelect('both')}
           >
+            {onboarding.userType === 'both' && (
+              <span className="selected-check">✓</span>
+            )}
+
             <div className="user-type-card-inner">
               <div className="icon-circle orange">
                 <svg
@@ -159,8 +188,11 @@ function UserTypeStep({ onboarding, setOnboarding }) {
               <div className="user-type-text">
                 <h3>Both</h3>
                 <p>
-                  I'd like to both receive support and donate items to help
-                  other families.
+                  I'd like to both receive
+                  <br />
+                  support and donate items to
+                  <br />
+                  help other families.
                 </p>
               </div>
             </div>

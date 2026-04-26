@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@300;400;500;700&family=Fira+Sans:wght@700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@300;400;500;700;800&family=Fira+Sans:wght@700;900&display=swap');
 
 * {
   box-sizing: border-box;
@@ -15,16 +15,33 @@ body {
   background: #fdfaf1;
 }
 
-.user-type-page {
+.caregiver-page {
   height: 100vh;
   overflow: hidden;
-  padding: 16px 28px;
+  background: #fdfaf1;
   display: flex;
   flex-direction: column;
-  background: #fdfaf1;
 }
 
-.user-type-logo {
+.caregiver-header {
+  width: 100%;
+  padding: 16px 28px 0;
+  flex-shrink: 0;
+}
+
+.caregiver-brand-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.caregiver-logo-img {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+}
+
+.caregiver-brand-text {
   color: #87b387;
   font-family: 'Fira Sans', sans-serif;
   font-size: 40px;
@@ -32,16 +49,21 @@ body {
   line-height: 1;
 }
 
-.user-type-content {
+.caregiver-content {
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   gap: 14px;
+  padding: 8px 20px 24px;
 }
 
-.user-type-title {
+.caregiver-progress {
+  display: none;
+}
+
+.caregiver-title {
   margin: 0;
   color: #000;
   text-align: center;
@@ -51,7 +73,7 @@ body {
   line-height: 1.05;
 }
 
-.user-type-subtitle {
+.caregiver-subtitle {
   margin: 0;
   color: #555;
   text-align: center;
@@ -61,7 +83,7 @@ body {
   line-height: normal;
 }
 
-.user-type-cards {
+.caregiver-cards {
   display: flex;
   gap: 18px;
   margin-top: 16px;
@@ -69,7 +91,7 @@ body {
   justify-content: center;
 }
 
-.user-type-card {
+.caregiver-card {
   position: relative;
   width: 240px;
   min-height: 290px;
@@ -79,49 +101,23 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  border: 1.6px solid transparent;
+  border: 1.6px solid #dd8c93;
   cursor: pointer;
   transition: all 0.25s ease;
 }
 
-.user-type-card:hover {
+.caregiver-card:hover {
   transform: translateY(-2px);
 }
 
-.user-type-card.caregiver {
-  border-color: #dd8c93;
-}
-
-.user-type-card.donor {
-  border-color: #87b387;
-}
-
-.user-type-card.both {
-  border-color: #d68e5e;
-}
-
-.user-type-card.selected.caregiver {
+.caregiver-card.selected {
   background: rgba(221, 140, 147, 0.12);
   border: 2px solid #dd8c93;
   transform: scale(1.03);
   box-shadow: 0 8px 20px rgba(221, 140, 147, 0.25);
 }
 
-.user-type-card.selected.donor {
-  background: rgba(135, 179, 135, 0.12);
-  border: 2px solid #87b387;
-  transform: scale(1.03);
-  box-shadow: 0 8px 20px rgba(135, 179, 135, 0.25);
-}
-
-.user-type-card.selected.both {
-  background: rgba(214, 142, 94, 0.12);
-  border: 2px solid #d68e5e;
-  transform: scale(1.03);
-  box-shadow: 0 8px 20px rgba(214, 142, 94, 0.25);
-}
-
-.selected-check {
+.caregiver-check {
   position: absolute;
   top: 10px;
   right: 12px;
@@ -130,7 +126,7 @@ body {
   color: #333;
 }
 
-.user-type-card-inner {
+.caregiver-card-inner {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -138,7 +134,7 @@ body {
   width: 100%;
 }
 
-.icon-circle {
+.caregiver-icon-circle {
   width: 48px;
   height: 48px;
   border-radius: 999px;
@@ -146,34 +142,28 @@ body {
   align-items: center;
   justify-content: center;
   margin-bottom: 4px;
-}
-
-.icon-circle.pink {
   background: #dd8c93;
 }
 
-.icon-circle.green {
-  background: #87b387;
-}
-
-.icon-circle.orange {
-  background: #d68e5e;
-}
-
-.icon-circle svg {
+.caregiver-icon-svg {
   width: 26px;
   height: 26px;
   flex-shrink: 0;
 }
 
-.user-type-text {
+.caregiver-icon-svg path {
+  stroke-width: 2.667px;
+  stroke: #fdfaf1;
+}
+
+.caregiver-card-text {
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-.user-type-text h3 {
+.caregiver-card-text h3 {
   margin: 0;
   color: #000;
   text-align: center;
@@ -183,7 +173,7 @@ body {
   line-height: 1.15;
 }
 
-.user-type-text p {
+.caregiver-card-text p {
   margin: 8px 0 0;
   color: #555;
   text-align: center;
@@ -193,14 +183,14 @@ body {
   line-height: 1.45;
 }
 
-.user-type-button-row {
+.caregiver-button-row {
   display: flex;
   gap: 12px;
   margin-top: 18px;
 }
 
-.user-type-back-button,
-.user-type-continue-button {
+.caregiver-back-button,
+.caregiver-continue-button {
   width: 150px;
   height: 46px;
   border-radius: 999px;
@@ -212,53 +202,56 @@ body {
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
-.user-type-back-button {
+.caregiver-back-button {
   background: #e5dfcf;
   color: #2f2f2f;
 }
 
-.user-type-continue-button {
+.caregiver-continue-button {
   background: #87b387;
   color: #fff;
 }
 
-.user-type-back-button:hover,
-.user-type-continue-button:hover:not(:disabled) {
+.caregiver-back-button:hover,
+.caregiver-continue-button:hover:not(:disabled) {
   opacity: 0.95;
   transform: translateY(-1px);
 }
 
-.user-type-continue-button:disabled {
+.caregiver-continue-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
 @media (max-width: 900px) {
-  .user-type-page {
+  .caregiver-page {
     height: auto;
     min-height: 100vh;
     overflow: visible;
-    padding: 18px 20px 36px;
   }
 
-  .user-type-logo {
+  .caregiver-header {
+    padding: 18px 20px 0;
+  }
+
+  .caregiver-brand-text {
     font-size: 36px;
   }
 
-  .user-type-content {
+  .caregiver-content {
     justify-content: flex-start;
     padding-top: 30px;
   }
 
-  .user-type-title {
+  .caregiver-title {
     font-size: 34px;
   }
 
-  .user-type-subtitle {
+  .caregiver-subtitle {
     font-size: 18px;
   }
 
-  .user-type-cards {
+  .caregiver-cards {
     flex-direction: column;
     align-items: center;
     gap: 16px;
@@ -266,25 +259,21 @@ body {
     width: 100%;
   }
 
-  .user-type-card {
+  .caregiver-card {
     width: 100%;
     max-width: 320px;
     min-height: auto;
   }
 
-  .user-type-button-row {
+  .caregiver-button-row {
     width: 100%;
     flex-direction: column;
     align-items: center;
   }
 
-  .user-type-back-button,
-  .user-type-continue-button {
+  .caregiver-back-button,
+  .caregiver-continue-button {
     width: 100%;
     max-width: 320px;
-  }
-
-  .user-type-text p br {
-    display: none;
   }
 }
