@@ -53,12 +53,10 @@ function SignupPage({ resetOnboarding }) {
 
       if (data.token) {
         localStorage.setItem('token', data.token)
-        setForm({
-          name: '',
-          email: '',
-          password: '',
-          confirmPassword: '',
-        })
+        if (data.user?.id) {
+          localStorage.setItem('userId', data.user.id)
+        }
+        setForm({ name: '', email: '', password: '' })
         resetOnboarding()
         navigate('/onboarding/user-type')
       }

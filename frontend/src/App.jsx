@@ -30,6 +30,7 @@ function App() {
   }
 
   const submitOnboarding = async () => {
+    const token = localStorage.getItem("token");
     const token = localStorage.getItem('token')
     const userId = localStorage.getItem('userId')
 
@@ -55,7 +56,6 @@ function App() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          userId,
           onboarding,
         }),
       })

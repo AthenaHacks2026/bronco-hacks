@@ -4,6 +4,13 @@
   padding: 0 16px;
 }
 
+.dashboard-top-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
 /* Form layout */
 .form {
   display: flex;
@@ -92,6 +99,40 @@ button:disabled {
   background: #efefef;
   border-radius: 999px;
   padding: 5px 12px;
+  font-size: 14px;
+}
+
+.recommendation-card {
+  border: 1px solid #d8d8d8;
+  border-radius: 10px;
+  padding: 14px;
+  background: #fafafa;
+}
+
+.recommendations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.recommendation-category {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #4b5563;
+}
+
+.recommendation-why {
+  margin-top: 8px;
+  color: #374151;
+}
+
+.recommendation-helper-label {
+  margin: 8px 0 6px;
+  color: #4b5563;
   font-size: 14px;
 }
 

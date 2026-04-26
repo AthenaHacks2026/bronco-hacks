@@ -3,6 +3,7 @@ const multer = require("multer");
 const axios = require("axios");
 const Item = require("../models/Item");
 const { GoogleGenAI } = require("@google/genai");
+const requireAuth = require("../middleware/requireAuth");
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -10,6 +11,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
 });
+const modelName = process.env.GEMINI_MODEL || "gemini-2.0-flash";
 
 function safeParseModelJson(rawText) {
   try {
@@ -152,6 +154,48 @@ Rules:
 `;
 }
 
+function buildFallbackAnalysis(text, condition, brand) {
+  const normalizedText = String(text || "").toLowerCase();
+  const normalizedCondition = String(condition || "").toLowerCase();
+  const normalizedBrand = String(brand || "").trim();
+
+  const categoryKeywords = [
+    ["feeding", ["bottle", "formula", "nursing", "feeding", "sippy"]],
+    ["clothing", ["clothing", "clothes", "onesie", "shirt", "pants"]],
+    ["sleep", ["crib", "bassinet", "sleep", "blanket"]],
+    ["hygiene", ["diaper", "wipes", "soap", "hygiene"]],
+    ["transport", ["stroller", "car seat", "carrier"]],
+    ["toys", ["toy", "rattle", "book"]],
+    ["furniture", ["chair", "table", "dresser"]],
+    ["maternity", ["maternity", "pregnancy", "postpartum"]],
+  ];
+
+  let category = "other";
+  for (const [candidate, keywords] of categoryKeywords) {
+    if (keywords.some((word) => normalizedText.includes(word))) {
+      category = candidate;
+      break;
+    }
+  }
+
+  const isRelevant = category !== "other";
+  const aiCondition = normalizedCondition.includes("new") ? "new" : "used_good";
+
+  return {
+    item_name: text || "Donated item",
+    detected_brand: normalizedBrand,
+    detected_model: "",
+    category,
+    is_relevant: isRelevant,
+    stage_fit: ["newborn_0_3_months", "infant_3_12_months"],
+    condition: aiCondition,
+    condition_tags: aiCondition === "new" ? ["clean"] : ["functional"],
+    needs_review: false,
+    review_reason: "",
+    confidence: 0.6,
+  };
+}
+
 async function checkRecall(productName, brand = "") {
   try {
     const searchTerm = [brand, productName].filter(Boolean).join(" ").trim();
@@ -237,7 +281,7 @@ function applySafetyRules(parsed, recallResult) {
   };
 }
 
-router.post("/analyze-image", upload.single("image"), async (req, res) => {
+router.post("/analyze-image", requireAuth, upload.single("image"), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "No image uploaded." });
@@ -261,29 +305,49 @@ Important:
 - Do not include explanation text before or after the JSON.
 `;
 
-    const response = await ai.models.generateContent({
-      model: "gemma-4-31b-it",
-      contents: [
-        { text: prompt },
-        {
-          inlineData: {
-            mimeType: req.file.mimetype,
-            data: req.file.buffer.toString("base64"),
-          },
-        },
-      ],
-      config: {
-        responseMimeType: "application/json",
-        responseSchema,
-        temperature: 0.1,
-      },
-    });
+    let parsed;
 
-    const parsed = safeParseModelJson(response.text);
+    if (!process.env.GEMINI_API_KEY) {
+      parsed = buildFallbackAnalysis(text, condition, brand);
+    } else {
+      try {
+        const response = await ai.models.generateContent({
+          model: modelName,
+          contents: [
+            { text: prompt },
+            {
+              inlineData: {
+                mimeType: req.file.mimetype,
+                data: req.file.buffer.toString("base64"),
+              },
+            },
+          ],
+          config: {
+            responseMimeType: "application/json",
+            responseSchema,
+            temperature: 0.1,
+          },
+        });
+
+        parsed = safeParseModelJson(response.text);
+      } catch (modelError) {
+        console.warn(
+          "Gemini analyze failed, using fallback analyzer:",
+          modelError.message
+        );
+        parsed = buildFallbackAnalysis(text, condition, brand);
+      }
+    }
     const recall = await checkRecall(parsed.item_name, brand);
     const decision = applySafetyRules(parsed, recall);
 
     const savedItem = await Item.create({
+      donorUserId: req.userId,
+      userId: req.userId,
+      title: parsed.item_name || text || "Donated item",
+      description: text,
+      rawTags: [],
+      status: decision.final_status === "approved" ? "available" : "removed",
       text,
       condition,
       declaredBrand: brand,

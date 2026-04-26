@@ -5,7 +5,10 @@ require("dotenv").config();
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
-const itemRoutes = require("./routes/itemRoutes"); // ✅ FIX: added import
+const requireAuth = require("./middleware/requireAuth");
+const recommendationsRouter = require("./routes/recommendations");
+const itemRoutes = require("./routes/itemRoutes");
+const claimRoutes = require("./routes/claimRoutes");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -31,7 +34,9 @@ app.get("/api/health", (req, res) => {
 // API routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
-app.use("/api/items", itemRoutes); // ✅ FIX: now works correctly
+app.use("/api/recommendations", requireAuth, recommendationsRouter);
+app.use("/api/items", itemRoutes);
+app.use("/api/claims", requireAuth, claimRoutes);
 
 // Start server
 const startServer = async () => {
