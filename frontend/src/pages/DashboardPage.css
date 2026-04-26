@@ -185,7 +185,8 @@ body {
 }
 
 /* HEADER SECTION */
-.donor-header-section {
+.donor-header-section,
+.caregiver-header {
   margin-top: 20px;
   margin-bottom: 28px;
 }
@@ -202,7 +203,8 @@ body {
   gap: 10px;
 }
 
-.donor-title-block h1 {
+.donor-title-block h1,
+.caregiver-header h1 {
   font-family: 'Fira Sans', sans-serif;
   font-size: 64px;
   margin: 0;
@@ -211,6 +213,9 @@ body {
 .dashboard-subtext {
   font-size: 22px;
   color: var(--muted);
+  max-width: 850px;
+  line-height: 1.4;
+  margin-top: 10px;
 }
 
 /* PLUS BUTTON */
@@ -253,7 +258,7 @@ body {
   text-decoration: none;
 }
 
-/* CARD GRID */
+/* DONOR CARD GRID */
 .donor-cards-grid {
   margin-top: 20px;
   display: grid;
@@ -261,7 +266,7 @@ body {
   gap: 20px;
 }
 
-/* ITEM CARD */
+/* DONOR ITEM CARD */
 .donation-item-card {
   background: var(--card);
   border-radius: 14px;
@@ -300,6 +305,113 @@ body {
   cursor: pointer;
 }
 
+/* CAREGIVER SECTIONS */
+.dashboard-section {
+  margin-top: 30px;
+}
+
+.dashboard-section h2 {
+  font-family: 'Fira Sans', sans-serif;
+  font-size: 26px;
+  margin-bottom: 16px;
+}
+
+.dashboard-empty-text {
+  font-size: 18px;
+  color: var(--muted);
+}
+
+/* CAREGIVER ITEM GRID */
+.dashboard-item-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.dashboard-item-card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 14px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.dashboard-item-image {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.dashboard-item-body h3 {
+  margin: 0 0 10px;
+  font-family: 'Fira Sans', sans-serif;
+}
+
+.dashboard-item-body p {
+  color: var(--muted);
+  font-size: 16px;
+  margin: 0 0 12px;
+}
+
+.dashboard-secondary-btn {
+  margin-top: 10px;
+  background: var(--green);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: 'Alegreya Sans', sans-serif;
+  font-size: 16px;
+}
+
+/* CATEGORY GRID */
+.category-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.category-preview-card {
+  background: white;
+  padding: 18px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.category-preview-card h3 {
+  font-family: 'Fira Sans', sans-serif;
+  font-size: 24px;
+  margin: 0 0 16px;
+}
+
+.category-preview-grid {
+  display: flex;
+  gap: 10px;
+  margin: 12px 0 16px;
+  flex-wrap: wrap;
+}
+
+.category-preview-tile {
+  width: 105px;
+  height: 105px;
+  border-radius: 6px;
+  object-fit: cover;
+  background: #ece7de;
+}
+
+.category-view-btn {
+  border: none;
+  background: none;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 18px;
+  font-family: 'Alegreya Sans', sans-serif;
+}
+
 /* RESPONSIVE */
 @media (max-width: 900px) {
   .dashboard-navbar {
@@ -312,11 +424,19 @@ body {
     gap: 16px;
   }
 
-  .donor-cards-grid {
+  .donor-cards-grid,
+  .dashboard-item-grid,
+  .category-card-grid {
     grid-template-columns: 1fr;
   }
 
-  .donation-item-card {
+  .donation-item-card,
+  .dashboard-item-card {
     grid-template-columns: 1fr;
+  }
+
+  .donor-title-block h1,
+  .caregiver-header h1 {
+    font-size: 42px;
   }
 }

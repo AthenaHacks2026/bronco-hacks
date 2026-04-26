@@ -5,33 +5,99 @@ import "./DashboardPage.css";
 
 import LogoIcon from "../assets/website-icon.png";
 
-const formatReasons = (reasons = []) => {
-  if (!reasons.length) return "Matched to your profile and current stage.";
-  return reasons
-    .map((reason) => reason.charAt(0).toUpperCase() + reason.slice(1))
-    .join(" • ");
-};
-
-const isMongoObjectId = (value) => /^[a-f0-9]{24}$/i.test(String(value || ""));
-
 function DashboardPage() {
   const [lookingForItems, setLookingForItems] = useState([]);
   const [recommendedItems, setRecommendedItems] = useState([]);
-  const [requestedClaims, setRequestedClaims] = useState([]);
-  const [donorItems, setDonorItems] = useState([]);
-  const [userType, setUserType] = useState("");
-  const [viewMode, setViewMode] = useState("caregiver");
-  const [normalizedNeeds, setNormalizedNeeds] = useState([]);
   const [recommendedCategories, setRecommendedCategories] = useState([]);
-  const [requestingIds, setRequestingIds] = useState([]);
-  const [requestedItemIds, setRequestedItemIds] = useState([]);
-  const [requestFeedback, setRequestFeedback] = useState("");
+  const [donorItems, setDonorItems] = useState([]);
+
+  const [userRoles, setUserRoles] = useState({
+    isCaregiver: false,
+    isDonor: false,
+  });
+
   const [searchQuery, setSearchQuery] = useState("");
   const [locationLabel, setLocationLabel] = useState("City, Zipcode");
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
+  const [onboardingData, setOnboardingData] = useState({});
+  const [profileName, setProfileName] = useState({
+    username: "username",
+    fullName: "Full Name",
+  });
 
   const profileMenuRef = useRef(null);
+
+  function getFallbackCategories(onboarding) {
+    const situation = String(onboarding?.situation || "").toLowerCase();
+    const weeksPregnant = Number(
+      onboarding?.weeksPregnant ??
+        onboarding?.pregnancyWeeks ??
+        onboarding?.weeks ??
+        0
+    );
+    const weeksPostpartum = Number(
+      onboarding?.weeksPostpartum ?? onboarding?.postpartumWeeks ?? 0
+    );
+    const childAgeMonths = Number(
+      onboarding?.childAgeMonths ?? onboarding?.childAge ?? 0
+    );
+
+    if (situation === "pregnant") {
+      if (weeksPregnant >= 28) {
+        return ["Clothing", "Feeding", "Hospital Prep"];
+      }
+      return ["Clothing", "Essentials"];
+    }
+
+    if (situation === "postpartum") {
+      if (weeksPostpartum <= 8) {
+        return ["Feeding", "Recovery", "Clothing"];
+      }
+      return ["Clothing", "Feeding", "Essentials"];
+    }
+
+    if (childAgeMonths > 0 && childAgeMonths <= 12) {
+      return ["Clothing", "Toys", "Feeding"];
+    }
+
+    return ["Clothing", "Toys", "Essentials"];
+  }
+
+  function getStageSummary(onboarding) {
+    const situation = String(onboarding?.situation || "").toLowerCase();
+    const weeksPregnant = Number(
+      onboarding?.weeksPregnant ??
+        onboarding?.pregnancyWeeks ??
+        onboarding?.weeks ??
+        0
+    );
+    const weeksPostpartum = Number(
+      onboarding?.weeksPostpartum ?? onboarding?.postpartumWeeks ?? 0
+    );
+    const childAgeMonths = Number(
+      onboarding?.childAgeMonths ?? onboarding?.childAge ?? 0
+    );
+
+    if (situation === "pregnant") {
+      if (weeksPregnant >= 28) {
+        return "As you approach delivery, these items can help you prepare for both your hospital stay and postpartum recovery. We’ve highlighted essentials commonly needed at this stage.";
+      }
+      return "These recommendations focus on early pregnancy essentials and items caregivers commonly need during this stage.";
+    }
+
+    if (situation === "postpartum") {
+      if (weeksPostpartum <= 8) {
+        return "These recommendations support recovery, feeding, and early newborn care during the postpartum stage.";
+      }
+      return "These recommendations focus on daily essentials commonly needed after the early postpartum period.";
+    }
+
+    if (childAgeMonths > 0 && childAgeMonths <= 12) {
+      return "As your child grows, these recommendations focus on clothing, play, and everyday essentials for this stage.";
+    }
+
+    return "Based on your current stage, we’ve selected categories and items that may be most helpful right now.";
+  }
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -49,34 +115,46 @@ function DashboardPage() {
 
   useEffect(() => {
     const fetchDashboardData = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) return;
+      const token = localStorage.getItem("token");
+      if (!token) return;
 
+      try {
         const meRes = await axios.get("/api/users/me", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         const user = meRes.data?.user || {};
-        setCurrentUser(user);
+        const onboarding = user?.onboarding || {};
+        setOnboardingData(onboarding);
 
-        const currentUserType = user?.onboarding?.userType || "caregiver";
-        setUserType(currentUserType);
-        setViewMode(currentUserType);
+        const rawUserType = String(onboarding?.userType || "").toLowerCase();
+        const isCaregiver =
+          rawUserType === "caregiver" || rawUserType === "both";
+        const isDonor = rawUserType === "donor" || rawUserType === "both";
 
-        const city = user?.location?.city || user?.city || "";
-        const zip = user?.location?.zip || user?.zipCode || "";
-        const formattedLocation =
-          [city, zip].filter(Boolean).join(", ") || "City, Zipcode";
-        setLocationLabel(formattedLocation);
+        setUserRoles({ isCaregiver, isDonor });
 
-        const currentUserId = String(user?._id || "");
+        const city = user?.location?.city || user?.city || "City";
+        const zip = user?.location?.zip || user?.zipCode || "Zipcode";
+        setLocationLabel(`${city}, ${zip}`);
 
-        try {
-          const allItemsRes = await axios.get("/api/items");
-          const ownedItems = (allItemsRes.data || []).filter((item) => {
+        const firstName = user?.firstName || "";
+        const lastName = user?.lastName || "";
+        const username = user?.username || "username";
+        const fullName =
+          [firstName, lastName].filter(Boolean).join(" ") || "Full Name";
+
+        setProfileName({
+          username,
+          fullName,
+        });
+
+        if (isDonor && !isCaregiver) {
+          const itemsRes = await axios.get("/api/items");
+          const allItems = itemsRes.data || [];
+          const currentUserId = String(user?._id || "");
+
+          const ownedItems = allItems.filter((item) => {
             const donorId =
               item?.donorUserId ||
               item?.userId ||
@@ -89,48 +167,45 @@ function DashboardPage() {
           });
 
           setDonorItems(ownedItems);
-        } catch (err) {
-          console.error("Donor items fetch failed:", err);
-          setDonorItems([]);
-        }
-
-        try {
-          const recRes = await axios.get("/api/recommendations", {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-
-          setNormalizedNeeds(recRes.data?.normalizedNeeds || []);
-          setRecommendedCategories(recRes.data?.recommended?.categories || []);
-          setLookingForItems(recRes.data?.lookingFor?.items || []);
-          setRecommendedItems(recRes.data?.recommended?.items || []);
-        } catch (err) {
-          console.error("Recommendations fetch failed:", err);
-          setNormalizedNeeds([]);
-          setRecommendedCategories([]);
           setLookingForItems([]);
           setRecommendedItems([]);
+          setRecommendedCategories([]);
+          return;
         }
 
-        try {
-          const claimsRes = await axios.get("/api/claims/me", {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+        const recRes = await axios.get("/api/recommendations", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const lookingFor = recRes.data?.lookingFor?.items || [];
+        const recommended = recRes.data?.recommended?.items || [];
+        const apiCategories = recRes.data?.recommended?.categories || [];
+        const fallbackCategories = getFallbackCategories(onboarding);
+
+        setLookingForItems(lookingFor);
+        setRecommendedItems(recommended);
+        setRecommendedCategories(
+          apiCategories.length > 0 ? apiCategories : fallbackCategories
+        );
+
+        if (isDonor) {
+          const itemsRes = await axios.get("/api/items");
+          const allItems = itemsRes.data || [];
+          const currentUserId = String(user?._id || "");
+
+          const ownedItems = allItems.filter((item) => {
+            const donorId =
+              item?.donorUserId ||
+              item?.userId ||
+              item?.ownerUserId ||
+              item?.ownerId ||
+              item?.createdByUserId ||
+              item?.createdBy;
+
+            return String(donorId || "") === currentUserId;
           });
 
-          const claims = claimsRes.data?.claims || [];
-          setRequestedClaims(claims);
-          setRequestedItemIds(
-            claims
-              .map((claim) => String(claim?.itemId?._id || claim?.itemId || ""))
-              .filter(Boolean)
-          );
-        } catch (err) {
-          console.error("Claims fetch failed:", err);
-          setRequestedClaims([]);
-          setRequestedItemIds([]);
+          setDonorItems(ownedItems);
         }
       } catch (err) {
         console.error("Dashboard fetch failed:", err);
@@ -144,83 +219,9 @@ function DashboardPage() {
     localStorage.removeItem("token");
   };
 
-  const isAlreadyRequested = (itemId) =>
-    requestedItemIds.includes(String(itemId)) ||
-    requestedClaims.some(
-      (claim) =>
-        String(claim?.itemId?._id || claim?.itemId) === String(itemId) &&
-        ["pending", "accepted", "completed"].includes(String(claim?.status || ""))
-    );
-
-  const handleRequestItem = async (item) => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
-    if (requestingIds.includes(item?.id) || isAlreadyRequested(item?.id)) return;
-
-    if (!isMongoObjectId(item?.id)) {
-      setRequestFeedback("Only real database items can be requested.");
-      return;
-    }
-
-    setRequestFeedback("");
-    setRequestingIds((prev) => [...prev, item.id]);
-
-    try {
-      const createRes = await axios.post(
-        "/api/claims",
-        { itemId: item.id },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      const createdClaim = createRes?.data?.claim;
-      const optimisticClaim = createdClaim
-        ? {
-            ...createdClaim,
-            itemId: {
-              _id: item.id,
-              title: item.title,
-              itemName: item.title,
-              text: item.description,
-              category: item.category,
-            },
-          }
-        : null;
-
-      if (optimisticClaim) {
-        setRequestedItemIds((prev) =>
-          prev.includes(String(item.id)) ? prev : [...prev, String(item.id)]
-        );
-
-        setRequestedClaims((prev) => [
-          optimisticClaim,
-          ...prev.filter((claim) => String(claim?._id) !== String(optimisticClaim._id)),
-        ]);
-      }
-
-      setRecommendedItems((prev) => prev.filter((candidate) => candidate.id !== item.id));
-      setLookingForItems((prev) => prev.filter((candidate) => candidate.id !== item.id));
-      setRequestFeedback("Item requested successfully.");
-    } catch (error) {
-      if (error?.response?.status === 409) {
-        setRequestFeedback(
-          error?.response?.data?.message || "You already requested this item."
-        );
-      } else {
-        setRequestFeedback(
-          error?.response?.data?.message || "Failed to submit item request."
-        );
-      }
-    } finally {
-      setRequestingIds((prev) => prev.filter((id) => id !== item.id));
-    }
-  };
-
   const filteredLookingForItems = useMemo(() => {
     if (!searchQuery.trim()) return lookingForItems;
+
     const q = searchQuery.toLowerCase();
     return lookingForItems.filter((item) =>
       [item?.title, item?.description, item?.category]
@@ -233,6 +234,7 @@ function DashboardPage() {
 
   const filteredRecommendedItems = useMemo(() => {
     if (!searchQuery.trim()) return recommendedItems;
+
     const q = searchQuery.toLowerCase();
     return recommendedItems.filter((item) =>
       [item?.title, item?.description, item?.category]
@@ -243,36 +245,18 @@ function DashboardPage() {
     );
   }, [recommendedItems, searchQuery]);
 
-  const filteredDonorItems = useMemo(() => {
-    if (!searchQuery.trim()) return donorItems;
-    const q = searchQuery.toLowerCase();
-    return donorItems.filter((item) =>
-      [
-        item?.title,
-        item?.itemName,
-        item?.text,
-        item?.description,
-        item?.category,
-        item?.city,
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase()
-        .includes(q)
-    );
-  }, [donorItems, searchQuery]);
-
-  const fullName = [currentUser?.firstName, currentUser?.lastName]
-    .filter(Boolean)
-    .join(" ");
-  const username =
-    currentUser?.username || currentUser?.email?.split("@")?.[0] || "username";
+  const showDonorDashboard = userRoles.isDonor && !userRoles.isCaregiver;
+  const showCaregiverDashboard = userRoles.isCaregiver;
 
   return (
     <main className="dashboard-page">
       <header className="dashboard-navbar">
         <div className="dashboard-logo-group">
-          <img src={LogoIcon} alt="Littleloop logo" className="dashboard-logo-icon" />
+          <img
+            src={LogoIcon}
+            alt="Littleloop logo"
+            className="dashboard-logo-icon"
+          />
         </div>
 
         <div className="dashboard-location">
@@ -297,33 +281,16 @@ function DashboardPage() {
             onClick={() => setIsProfileMenuOpen((prev) => !prev)}
             aria-label="Open profile menu"
           >
-            {currentUser?.profileImage ? (
-              <img
-                src={currentUser.profileImage}
-                alt="Profile"
-                className="dashboard-profile-avatar-img"
-              />
-            ) : (
-              <div className="dashboard-profile-avatar" />
-            )}
+            <div className="dashboard-profile-avatar" />
           </button>
 
           {isProfileMenuOpen && (
             <div className="dashboard-profile-menu">
               <div className="dashboard-profile-menu-header">
-                {currentUser?.profileImage ? (
-                  <img
-                    src={currentUser.profileImage}
-                    alt="Profile"
-                    className="dashboard-profile-menu-avatar-img"
-                  />
-                ) : (
-                  <div className="dashboard-profile-menu-avatar" />
-                )}
-
+                <div className="dashboard-profile-menu-avatar" />
                 <div className="dashboard-profile-menu-user">
-                  <strong>{username}</strong>
-                  <span>{fullName || "Full Name"}</span>
+                  <strong>{profileName.username}</strong>
+                  <span>{profileName.fullName}</span>
                 </div>
               </div>
 
@@ -339,29 +306,27 @@ function DashboardPage() {
                   Profile
                 </Link>
 
-                <button
-                  type="button"
-                  className="dashboard-profile-menu-link menu-button"
-                  onClick={() => {
-                    setViewMode("donor");
-                    setIsProfileMenuOpen(false);
-                  }}
-                >
-                  <span className="menu-icon-square" />
-                  Donor Dashboard
-                </button>
+                {userRoles.isDonor && (
+                  <Link
+                    to="/dashboard"
+                    className="dashboard-profile-menu-link"
+                    onClick={() => setIsProfileMenuOpen(false)}
+                  >
+                    <span className="menu-icon-square" />
+                    Donor Dashboard
+                  </Link>
+                )}
 
-                <button
-                  type="button"
-                  className="dashboard-profile-menu-link menu-button"
-                  onClick={() => {
-                    setViewMode("caregiver");
-                    setIsProfileMenuOpen(false);
-                  }}
-                >
-                  <span className="menu-icon-square" />
-                  Caregiver Dashboard
-                </button>
+                {userRoles.isCaregiver && (
+                  <Link
+                    to="/dashboard"
+                    className="dashboard-profile-menu-link"
+                    onClick={() => setIsProfileMenuOpen(false)}
+                  >
+                    <span className="menu-icon-square" />
+                    Caregiver Dashboard
+                  </Link>
+                )}
               </div>
 
               <div className="dashboard-profile-divider" />
@@ -374,15 +339,6 @@ function DashboardPage() {
                 >
                   <span className="menu-icon-square" />
                   Settings
-                </Link>
-
-                <Link
-                  to="/appearance"
-                  className="dashboard-profile-menu-link"
-                  onClick={() => setIsProfileMenuOpen(false)}
-                >
-                  <span className="menu-icon-square" />
-                  Appearance
                 </Link>
               </div>
 
@@ -405,7 +361,7 @@ function DashboardPage() {
       </header>
 
       <section className="dashboard-content">
-        {viewMode === "donor" ? (
+        {showDonorDashboard ? (
           <>
             <section className="donor-header-section">
               <div className="donor-header-row">
@@ -416,13 +372,17 @@ function DashboardPage() {
                   </p>
                 </div>
 
-                <Link to="/upload" className="dashboard-add-button" aria-label="Add donation">
+                <Link
+                  to="/upload"
+                  className="dashboard-add-button"
+                  aria-label="Add donation"
+                >
                   +
                 </Link>
               </div>
             </section>
 
-            {filteredDonorItems.length === 0 ? (
+            {donorItems.length === 0 ? (
               <section className="donor-empty-state">
                 <h3>No donations yet</h3>
                 <p>Upload your first item to start helping families in your area.</p>
@@ -432,7 +392,7 @@ function DashboardPage() {
               </section>
             ) : (
               <section className="donor-cards-grid">
-                {filteredDonorItems.map((item) => (
+                {donorItems.map((item) => (
                   <article
                     key={String(item._id || item.id)}
                     className="donation-item-card"
@@ -453,8 +413,8 @@ function DashboardPage() {
 
                       <ul className="donation-item-meta">
                         <li>{item?.category || "Category"}</li>
-                        <li>Donated by me</li>
-                        <li>{item?.city || "Pomona"}</li>
+                        <li>Donated by User</li>
+                        <li>{item?.city || "Pomona"} • #{item?.miles || "miles"}</li>
                         <li>
                           {item?.createdAt
                             ? `Posted ${new Date(item.createdAt).toLocaleDateString()}`
@@ -471,53 +431,39 @@ function DashboardPage() {
               </section>
             )}
           </>
-        ) : (
+        ) : showCaregiverDashboard ? (
           <>
-            <section className="caregiver-header-section">
-              <div className="caregiver-title-block">
-                <h1>Recommended for your stage</h1>
-                <p className="dashboard-subtext">
-                  Based on your current stage, we’ve selected categories and items
-                  that may be most helpful right now.
-                </p>
-              </div>
+            <section className="caregiver-header">
+              <h1>Recommended for your stage</h1>
+              <p className="dashboard-subtext">
+                {getStageSummary(onboardingData)}
+              </p>
             </section>
 
             {searchQuery.trim() && (
               <section className="dashboard-section">
-                <div className="section-heading-row">
-                  <h2>Search Results</h2>
-                  <span className="section-helper">Results for “{searchQuery}”</span>
-                </div>
+                <h2>Search Results</h2>
 
                 {filteredLookingForItems.length === 0 ? (
-                  <p className="dashboard-empty-text">No direct matches found yet.</p>
+                  <p className="dashboard-empty-text">No results found.</p>
                 ) : (
                   <div className="dashboard-item-grid">
                     {filteredLookingForItems.map((item) => (
                       <article key={item.id} className="dashboard-item-card">
-                        <div className="dashboard-item-top">
-                          <span className="dashboard-item-category">{item.category}</span>
+                        <img
+                          src={item.image || "https://via.placeholder.com/120"}
+                          alt={item.title}
+                          className="dashboard-item-image"
+                        />
+
+                        <div className="dashboard-item-body">
+                          <h3>{item.title}</h3>
+                          <p>{item.description}</p>
+
+                          <button className="dashboard-secondary-btn">
+                            Request Item →
+                          </button>
                         </div>
-
-                        <h3>{item.title}</h3>
-                        <p>{item.description}</p>
-                        <p className="dashboard-item-why">{formatReasons(item.reasons)}</p>
-
-                        <button
-                          type="button"
-                          className="dashboard-secondary-btn"
-                          onClick={() => handleRequestItem(item)}
-                          disabled={
-                            requestingIds.includes(item.id) || isAlreadyRequested(item.id)
-                          }
-                        >
-                          {requestingIds.includes(item.id)
-                            ? "Requesting..."
-                            : isAlreadyRequested(item.id)
-                              ? "Requested"
-                              : "Request Item"}
-                        </button>
                       </article>
                     ))}
                   </div>
@@ -526,12 +472,7 @@ function DashboardPage() {
             )}
 
             <section className="dashboard-section">
-              <div className="section-heading-row">
-                <h2>Recommended Categories</h2>
-                <span className="section-helper">
-                  Tailored to your stage and caregiving needs
-                </span>
-              </div>
+              <h2>Recommended Categories</h2>
 
               {recommendedCategories.length === 0 ? (
                 <p className="dashboard-empty-text">No categories yet.</p>
@@ -539,41 +480,45 @@ function DashboardPage() {
                 <div className="category-card-grid">
                   {recommendedCategories.map((category, index) => {
                     const previewItems = recommendedItems
-                      .filter(
-                        (item) =>
-                          String(item?.category || "").toLowerCase() ===
-                          String(category || "").toLowerCase()
-                      )
+                      .filter((item) => {
+                        const itemCategory = String(item?.category || "").toLowerCase();
+                        const currentCategory = String(category || "").toLowerCase();
+
+                        return (
+                          itemCategory.includes(currentCategory) ||
+                          currentCategory.includes(itemCategory)
+                        );
+                      })
                       .slice(0, 4);
 
                     return (
-                      <article key={`${category}-${index}`} className="category-preview-card">
-                        <div className="category-preview-header">
-                          <div className="category-preview-icon">⬡</div>
-                          <h3>{category}</h3>
-                        </div>
+                      <div key={`${category}-${index}`} className="category-preview-card">
+                        <h3>{category}</h3>
 
                         <div className="category-preview-grid">
                           {previewItems.length > 0 ? (
                             previewItems.map((item) => (
-                              <div key={item.id} className="category-preview-tile">
-                                {item.title}
-                              </div>
+                              <img
+                                key={item.id}
+                                src={item.image || "https://via.placeholder.com/80"}
+                                alt={item.title}
+                                className="category-preview-tile"
+                              />
                             ))
                           ) : (
                             <>
-                              <div className="category-preview-tile muted">Suggested item</div>
-                              <div className="category-preview-tile muted">Suggested item</div>
-                              <div className="category-preview-tile muted">Suggested item</div>
-                              <div className="category-preview-tile muted">Suggested item</div>
+                              <div className="category-preview-tile" />
+                              <div className="category-preview-tile" />
+                              <div className="category-preview-tile" />
+                              <div className="category-preview-tile" />
                             </>
                           )}
                         </div>
 
-                        <button type="button" className="category-view-btn">
+                        <button className="category-view-btn">
                           View Items →
                         </button>
-                      </article>
+                      </div>
                     );
                   })}
                 </div>
@@ -581,12 +526,7 @@ function DashboardPage() {
             </section>
 
             <section className="dashboard-section">
-              <div className="section-heading-row">
-                <h2>Additional Recommendations</h2>
-                <span className="section-helper">
-                  What other caregivers in similar situations found useful
-                </span>
-              </div>
+              <h2>Additional Recommendations</h2>
 
               {filteredRecommendedItems.length === 0 ? (
                 <p className="dashboard-empty-text">No recommendations yet.</p>
@@ -594,81 +534,33 @@ function DashboardPage() {
                 <div className="dashboard-item-grid">
                   {filteredRecommendedItems.map((item) => (
                     <article key={item.id} className="dashboard-item-card">
-                      <div className="dashboard-item-top">
-                        <span className="dashboard-item-category">{item.category}</span>
+                      <img
+                        src={item.image || "https://via.placeholder.com/120"}
+                        alt={item.title}
+                        className="dashboard-item-image"
+                      />
+
+                      <div className="dashboard-item-body">
+                        <h3>{item.title}</h3>
+                        <p>{item.description}</p>
+
+                        <button className="dashboard-secondary-btn">
+                          Request Item →
+                        </button>
                       </div>
-
-                      <h3>{item.title}</h3>
-                      <p>{item.description}</p>
-                      <p className="dashboard-item-why">{formatReasons(item.reasons)}</p>
-
-                      <button
-                        type="button"
-                        className="dashboard-secondary-btn"
-                        onClick={() => handleRequestItem(item)}
-                        disabled={
-                          requestingIds.includes(item.id) || isAlreadyRequested(item.id)
-                        }
-                      >
-                        {requestingIds.includes(item.id)
-                          ? "Requesting..."
-                          : isAlreadyRequested(item.id)
-                            ? "Requested"
-                            : "Request Item"}
-                      </button>
                     </article>
                   ))}
                 </div>
               )}
             </section>
-
-            <section className="dashboard-request-box">
-              <h3>Can’t find what you need?</h3>
-              <p>Create a request and we’ll notify you when someone donates it.</p>
-              <Link to="/request" className="dashboard-primary-btn">
-                Create a Request
-              </Link>
-            </section>
-
-            {requestFeedback && <p className="dashboard-feedback">{requestFeedback}</p>}
-
-            <section className="dashboard-section">
-              <div className="section-heading-row">
-                <h2>Requested Items</h2>
-              </div>
-
-              {requestedClaims.length === 0 ? (
-                <p className="dashboard-empty-text">No requested items yet.</p>
-              ) : (
-                <div className="dashboard-item-grid">
-                  {requestedClaims.map((claim) => {
-                    const requestedItem = claim.itemId || {};
-                    const title =
-                      requestedItem.title ||
-                      requestedItem.itemName ||
-                      requestedItem.text ||
-                      "Requested item";
-
-                    return (
-                      <article key={claim._id} className="dashboard-item-card">
-                        <div className="dashboard-item-top">
-                          <span className="dashboard-item-category">
-                            {requestedItem.category || "Item"}
-                          </span>
-                        </div>
-
-                        <h3>{title}</h3>
-                        <p>
-                          Request status:{" "}
-                          {String(claim.status || "pending").replace("_", " ")}
-                        </p>
-                      </article>
-                    );
-                  })}
-                </div>
-              )}
-            </section>
           </>
+        ) : (
+          <section className="dashboard-section">
+            <h2>No dashboard available</h2>
+            <p className="dashboard-empty-text">
+              Your account does not currently have a caregiver or donor role.
+            </p>
+          </section>
         )}
       </section>
     </main>
