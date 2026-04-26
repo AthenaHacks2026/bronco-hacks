@@ -3,8 +3,9 @@ const multer = require("multer");
 const axios = require("axios");
 const { randomUUID } = require("crypto");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
-const Item = require("../models/Item");
 const { GoogleGenAI } = require("@google/genai");
+
+const Item = require("../models/Item");
 const requireAuth = require("../middleware/requireAuth");
 
 const router = express.Router();
@@ -13,6 +14,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
 });
+
 const modelName = process.env.GEMINI_MODEL || "gemini-2.0-flash";
 const s3Bucket = process.env.S3_BUCKET_NAME;
 const s3Region = process.env.AWS_REGION;
@@ -36,6 +38,7 @@ function getPublicImageUrl(key) {
   if (s3PublicBaseUrl) {
     return `${s3PublicBaseUrl.replace(/\/+$/, "")}/${key}`;
   }
+
   return `https://${s3Bucket}.s3.${s3Region}.amazonaws.com/${key}`;
 }
 
@@ -49,6 +52,7 @@ async function uploadImageToS3(file, userId) {
   const extension = file.originalname?.includes(".")
     ? file.originalname.split(".").pop().toLowerCase()
     : "jpg";
+
   const key = `items/${userId}/${Date.now()}-${randomUUID()}.${extension}`;
 
   await s3Client.send(
@@ -69,6 +73,7 @@ function safeParseModelJson(rawText) {
     return JSON.parse(rawText);
   } catch {
     const firstBrace = rawText.indexOf("{");
+
     if (firstBrace === -1) {
       throw new Error(`Model did not return JSON. Raw response: ${rawText}`);
     }
@@ -165,6 +170,10 @@ const responseSchema = {
         ],
       },
     },
+    description_match: { type: "boolean" },
+    brand_match: { type: "boolean" },
+    match_score: { type: "number" },
+    mismatch_reason: { type: "string" },
     needs_review: { type: "boolean" },
     review_reason: { type: "string" },
     confidence: { type: "number" },
@@ -178,6 +187,10 @@ const responseSchema = {
     "stage_fit",
     "condition",
     "condition_tags",
+    "description_match",
+    "brand_match",
+    "match_score",
+    "mismatch_reason",
     "needs_review",
     "review_reason",
     "confidence",
@@ -196,12 +209,23 @@ Declared year: "${year}"
 Donor text: "${text}"
 Donor condition: "${condition}"
 
+Your job:
+1. Identify the item shown in the image.
+2. Identify the visible brand if possible.
+3. Decide whether the uploaded image matches the donor text.
+4. Decide whether the visible brand matches the declared brand.
+5. Give a match_score from 0.0 to 1.0.
+6. If there is a mismatch, explain it clearly.
+
 Rules:
 - If item is not related to pregnancy, postpartum, or infant care (0-12 months), set is_relevant=false and category="other".
 - detected_brand is required. If unknown, return "".
 - detected_model is required. If unknown, return "".
-- If image and description conflict, set needs_review=true and explain why.
-- Be conservative about safety.
+- description_match should be true only if the image clearly matches the donor text.
+- brand_match should be true only if the image supports the declared brand.
+- If image and text conflict, set needs_review=true.
+- If unsure, be conservative.
+- Return only JSON.
 `;
 }
 
@@ -222,6 +246,7 @@ function buildFallbackAnalysis(text, condition, brand) {
   ];
 
   let category = "other";
+
   for (const [candidate, keywords] of categoryKeywords) {
     if (keywords.some((word) => normalizedText.includes(word))) {
       category = candidate;
@@ -241,6 +266,10 @@ function buildFallbackAnalysis(text, condition, brand) {
     stage_fit: ["newborn_0_3_months", "infant_3_12_months"],
     condition: aiCondition,
     condition_tags: aiCondition === "new" ? ["clean"] : ["functional"],
+    description_match: true,
+    brand_match: Boolean(normalizedBrand),
+    match_score: 0.65,
+    mismatch_reason: "",
     needs_review: false,
     review_reason: "",
     confidence: 0.6,
@@ -251,11 +280,13 @@ async function checkRecall(productName, brand = "") {
   try {
     const searchTerm = [brand, productName].filter(Boolean).join(" ").trim();
     const url = `https://www.saferproducts.gov/RestWebServices/Recall?ProductName=${encodeURIComponent(searchTerm)}&format=json`;
+
     const response = await axios.get(url, { timeout: 10000 });
     const recalls = Array.isArray(response.data) ? response.data : [];
 
     if (recalls.length > 0) {
       const first = recalls[0];
+
       return {
         recall_status: "possible_match",
         recall_count: recalls.length,
@@ -297,14 +328,15 @@ function applySafetyRules(parsed, recallResult) {
   if (recallResult?.recall_status === "possible_match") {
     return {
       final_status: "blocked",
-      final_reason: "Possible recall match found. Item should not be listed until reviewed.",
+      final_reason:
+        "Possible recall match found. Item should not be listed until reviewed.",
     };
   }
 
   if (!parsed.is_relevant) {
     return {
       final_status: "needs_review",
-      final_reason: "Item not relevant to maternity or infant care.",
+      final_reason: "Item is not relevant to maternity or infant care.",
     };
   }
 
@@ -315,49 +347,69 @@ function applySafetyRules(parsed, recallResult) {
     };
   }
 
+  if (!parsed.description_match || parsed.match_score < 0.6) {
+    return {
+      final_status: "rejected",
+      final_reason:
+        parsed.mismatch_reason ||
+        "The uploaded image does not match the description.",
+    };
+  }
+
   if (
     parsed.needs_review ||
     parsed.confidence < 0.7 ||
+    !parsed.brand_match ||
+    (parsed.match_score >= 0.6 && parsed.match_score < 0.85) ||
     parsed.condition_tags.some((tag) => reviewTags.includes(tag))
   ) {
     return {
       final_status: "needs_review",
-      final_reason: parsed.review_reason || "Manual review required.",
+      final_reason:
+        parsed.review_reason ||
+        parsed.mismatch_reason ||
+        "Manual review required.",
     };
   }
 
   return {
     final_status: "approved",
-    final_reason: "Passed safety checks.",
+    final_reason: "Image matches the description and passed safety checks.",
   };
 }
 
-router.post("/analyze-image", requireAuth, upload.single("image"), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: "No image uploaded." });
-    }
-
-    const text = req.body.text || "";
-    const condition = req.body.condition || "";
-    const brand = String(req.body.brand || "").trim();
-    const year = String(req.body.year || "").trim();
-    let uploadedImageUrl = "";
+router.post(
+  "/analyze-image",
+  requireAuth,
+  upload.single("image"),
+  async (req, res) => {
     try {
-      uploadedImageUrl = await uploadImageToS3(req.file, req.userId);
-    } catch (s3Error) {
-      return res.status(502).json({
-        error: "Failed to upload image to S3.",
-        details: s3Error.message,
-        s3ErrorCode: s3Error.name || "S3UploadError",
-      });
-    }
+      if (!req.file) {
+        return res.status(400).json({ error: "No image uploaded." });
+      }
 
-    if (!brand || !year) {
-      return res.status(400).json({ error: "Brand and year are required." });
-    }
+      const text = String(req.body.text || "").trim();
+      const condition = String(req.body.condition || "").trim();
+      const brand = String(req.body.brand || "").trim();
+      const year = String(req.body.year || "").trim();
 
-    const prompt = `
+      if (!brand || !year) {
+        return res.status(400).json({ error: "Brand and year are required." });
+      }
+
+      let uploadedImageUrl = "";
+
+      try {
+        uploadedImageUrl = await uploadImageToS3(req.file, req.userId);
+      } catch (s3Error) {
+        return res.status(502).json({
+          error: "Failed to upload image to S3.",
+          details: s3Error.message,
+          s3ErrorCode: s3Error.name || "S3UploadError",
+        });
+      }
+
+      const prompt = `
 ${buildPrompt(text, condition, brand, year)}
 
 Important:
@@ -366,97 +418,111 @@ Important:
 - Do not include explanation text before or after the JSON.
 `;
 
-    let parsed;
+      let parsed;
 
-    if (!process.env.GEMINI_API_KEY) {
-      parsed = buildFallbackAnalysis(text, condition, brand);
-    } else {
-      try {
-        const response = await ai.models.generateContent({
-          model: modelName,
-          contents: [
-            { text: prompt },
-            {
-              inlineData: {
-                mimeType: req.file.mimetype,
-                data: req.file.buffer.toString("base64"),
-              },
-            },
-          ],
-          config: {
-            responseMimeType: "application/json",
-            responseSchema,
-            temperature: 0.1,
-          },
-        });
-
-        parsed = safeParseModelJson(response.text);
-      } catch (modelError) {
-        console.warn(
-          "Gemini analyze failed, using fallback analyzer:",
-          modelError.message
-        );
+      if (!process.env.GEMINI_API_KEY) {
         parsed = buildFallbackAnalysis(text, condition, brand);
+      } else {
+        try {
+          const response = await ai.models.generateContent({
+            model: modelName,
+            contents: [
+              { text: prompt },
+              {
+                inlineData: {
+                  mimeType: req.file.mimetype,
+                  data: req.file.buffer.toString("base64"),
+                },
+              },
+            ],
+            config: {
+              responseMimeType: "application/json",
+              responseSchema,
+              temperature: 0.1,
+            },
+          });
+
+          parsed = safeParseModelJson(response.text);
+        } catch (modelError) {
+          console.warn(
+            "Gemini analyze failed, using fallback analyzer:",
+            modelError.message
+          );
+          parsed = buildFallbackAnalysis(text, condition, brand);
+        }
       }
+
+      const recall = await checkRecall(parsed.item_name, brand);
+      const decision = applySafetyRules(parsed, recall);
+
+      const savedItem = await Item.create({
+        donorUserId: req.userId,
+        userId: req.userId,
+        title: parsed.item_name || text || "Donated item",
+        description: text,
+        rawTags: [],
+        status: decision.final_status === "approved" ? "available" : "removed",
+
+        text,
+        condition,
+        declaredBrand: brand,
+        declaredYear: year,
+
+        itemName: parsed.item_name,
+        detectedBrand: parsed.detected_brand,
+        detectedModel: parsed.detected_model,
+        category: parsed.category,
+        isRelevant: parsed.is_relevant,
+        stageFit: parsed.stage_fit,
+        aiCondition: parsed.condition,
+        conditionTags: parsed.condition_tags,
+
+        descriptionMatch: parsed.description_match,
+        brandMatch: parsed.brand_match,
+        matchScore: parsed.match_score,
+        mismatchReason: parsed.mismatch_reason,
+
+        needsReview: parsed.needs_review,
+        reviewReason: parsed.review_reason,
+        confidence: parsed.confidence,
+
+        images: uploadedImageUrl ? [uploadedImageUrl] : [],
+        image: uploadedImageUrl || "",
+        imageUrl: uploadedImageUrl || "",
+
+        recall: {
+          recallStatus: recall.recall_status,
+          recallCount: recall.recall_count,
+          recallQuery: recall.recall_query,
+          recallTitle: recall.recall_title,
+          recallDescription: recall.recall_description,
+        },
+
+        finalStatus: decision.final_status,
+        finalReason: decision.final_reason,
+      });
+
+      return res.status(200).json({
+        declared_brand: brand,
+        declared_year: year,
+        uploadedImageUrl,
+        ...parsed,
+        recall,
+        ...decision,
+        savedItem,
+      });
+    } catch (error) {
+      console.error("Analyze image error:", error);
+
+      return res.status(500).json({
+        error: "Failed to analyze image.",
+        details: error.message,
+      });
     }
-    const recall = await checkRecall(parsed.item_name, brand);
-    const decision = applySafetyRules(parsed, recall);
-
-    const savedItem = await Item.create({
-      donorUserId: req.userId,
-      userId: req.userId,
-      title: parsed.item_name || text || "Donated item",
-      description: text,
-      rawTags: [],
-      status: decision.final_status === "approved" ? "available" : "removed",
-      text,
-      condition,
-      declaredBrand: brand,
-      declaredYear: year,
-      itemName: parsed.item_name,
-      detectedBrand: parsed.detected_brand,
-      detectedModel: parsed.detected_model,
-      category: parsed.category,
-      isRelevant: parsed.is_relevant,
-      stageFit: parsed.stage_fit,
-      aiCondition: parsed.condition,
-      conditionTags: parsed.condition_tags,
-      needsReview: parsed.needs_review,
-      reviewReason: parsed.review_reason,
-      confidence: parsed.confidence,
-      images: uploadedImageUrl ? [uploadedImageUrl] : [],
-      image: uploadedImageUrl || "",
-      imageUrl: uploadedImageUrl || "",
-      recall: {
-        recallStatus: recall.recall_status,
-        recallCount: recall.recall_count,
-        recallQuery: recall.recall_query,
-        recallTitle: recall.recall_title,
-        recallDescription: recall.recall_description,
-      },
-      finalStatus: decision.final_status,
-      finalReason: decision.final_reason,
-    });
-
-    return res.status(200).json({
-      declared_brand: brand,
-      declared_year: year,
-      uploadedImageUrl,
-      ...parsed,
-      recall,
-      ...decision,
-      savedItem,
-    });
-  } catch (error) {
-    console.error("Analyze image error:", error);
-    return res.status(500).json({
-      error: "Failed to analyze image.",
-      details: error.message,
-    });
   }
-});
+);
 
-router.get("/", async (req, res) => {
+router.get("/", async (_req, res) => {
   try {
     const items = await Item.find().sort({ createdAt: -1 });
     return res.status(200).json(items);
