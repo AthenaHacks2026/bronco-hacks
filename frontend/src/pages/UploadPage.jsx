@@ -3,10 +3,12 @@ import { useState } from "react";
 
 function UploadPage() {
   const [image, setImage] = useState(null);
-  const [text, setText] = useState("");
+  const [itemName, setItemName] = useState("");
+  const [description, setDescription] = useState("");
   const [brand, setBrand] = useState("");
   const [year, setYear] = useState("");
   const [condition, setCondition] = useState("used");
+  const [category, setCategory] = useState("feeding");
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -31,16 +33,18 @@ function UploadPage() {
 
     const formData = new FormData();
     formData.append("image", image);
-    formData.append("text", text);
+    formData.append("text", itemName || description);
     formData.append("condition", condition);
     formData.append("brand", brand);
     formData.append("year", year);
+    formData.append("category", category);
+    formData.append("description", description);
 
     setLoading(true);
     setResult(null);
 
     try {
-      const response = await fetch("/api/items/analyze-image", {
+      const response = await fetch("http://localhost:4000/api/items/analyze-image", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -66,96 +70,194 @@ function UploadPage() {
   };
 
   return (
-    <main className="page">
-      <div className="dashboard-top-actions">
-        <Link className="button-link" to="/dashboard">
+    <main className="page upload-layout">
+      <div className="upload-topbar">
+        <div className="brand-mark">
+          <div className="brand-logo-circle">◌</div>
+          <span>Logo Name</span>
+        </div>
+
+        <Link className="button-link top-donate-link" to="/dashboard">
           Back
         </Link>
+
+        <div className="brand-mark right">
+          <div className="brand-logo-circle">◌</div>
+        </div>
       </div>
 
-      <h1>Upload Item</h1>
-      <p>Upload a baby item for review and safety checks.</p>
+      <section className="upload-hero">
+        <div>
+          <h1>Item Details</h1>
+          <p>Check item details.</p>
+        </div>
+      </section>
 
-      <form className="form" onSubmit={handleSubmit}>
-        <label htmlFor="image">Upload Image</label>
-        <input
-          id="image"
-          type="file"
-          accept="image/*"
-          onChange={(e) => setImage(e.target.files[0])}
-          required
-        />
+      <div className="upload-content-card">
+        <form className="form upload-form-grid" onSubmit={handleSubmit}>
+          <div className="field-group full-width">
+            <label>Images</label>
 
-        <label htmlFor="text">AI Chat Description</label>
-        <textarea
-          id="text"
-          rows="5"
-          placeholder="Describe the item here, for example: Baby Bottle Trial Pack Variety Box for Newborns, new, bought in 2026..."
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-        />
+            <div className="upload-image-grid">
+              <label className="upload-image-box upload-image-box-active">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setImage(e.target.files[0])}
+                  hidden
+                />
+                <span className="upload-image-icon">📷</span>
+                <span className="upload-image-title">
+                  {image ? image.name : "Add photos"}
+                </span>
+                <span className="upload-image-subtitle">Click to upload images</span>
+              </label>
 
-        <label htmlFor="brand">Brand</label>
-        <input
-          id="brand"
-          type="text"
-          placeholder="Enter brand"
-          value={brand}
-          onChange={(e) => setBrand(e.target.value)}
-          required
-        />
+              <div className="upload-image-box">
+                <span className="upload-image-icon">🖼️</span>
+                <span className="upload-image-title">Take Photo</span>
+                <span className="upload-image-subtitle">Tap to upload images</span>
+              </div>
+            </div>
+          </div>
 
-        <label htmlFor="year">Year</label>
-        <input
-          id="year"
-          type="text"
-          placeholder="Enter year"
-          value={year}
-          onChange={(e) => setYear(e.target.value)}
-          required
-        />
+          <div className="field-group full-width">
+            <label htmlFor="item-name">Name</label>
+            <input
+              id="item-name"
+              type="text"
+              placeholder="Item name"
+              value={itemName}
+              onChange={(e) => setItemName(e.target.value)}
+            />
+          </div>
 
-        <label htmlFor="condition">Condition</label>
-        <select
-          id="condition"
-          value={condition}
-          onChange={(e) => setCondition(e.target.value)}
-        >
-          <option value="new">New</option>
-          <option value="like_new">Like New</option>
-          <option value="used">Used</option>
-        </select>
+          <div className="field-group full-width">
+            <label>Condition</label>
+            <div className="choice-row">
+              <button
+                type="button"
+                className={`choice-chip ${condition === "new" ? "active" : ""}`}
+                onClick={() => setCondition("new")}
+              >
+                New
+              </button>
+              <button
+                type="button"
+                className={`choice-chip ${condition === "used" ? "active" : ""}`}
+                onClick={() => setCondition("used")}
+              >
+                Good
+              </button>
+              <button
+                type="button"
+                className={`choice-chip ${condition === "like_new" ? "active" : ""}`}
+                onClick={() => setCondition("like_new")}
+              >
+                Like New
+              </button>
+              <button type="button" className="choice-chip">
+                Fair
+              </button>
+            </div>
+          </div>
 
-        <button type="submit" disabled={loading}>
-          {loading ? "Analyzing..." : "Submit Item"}
-        </button>
-      </form>
+          <div className="field-group full-width">
+            <label>Category</label>
+            <div className="choice-row">
+              <button
+                type="button"
+                className={`choice-chip ${category === "clothing" ? "active" : ""}`}
+                onClick={() => setCategory("clothing")}
+              >
+                Clothing
+              </button>
+              <button
+                type="button"
+                className={`choice-chip ${category === "essentials" ? "active" : ""}`}
+                onClick={() => setCategory("essentials")}
+              >
+                Essentials
+              </button>
+              <button
+                type="button"
+                className={`choice-chip ${category === "feeding" ? "active" : ""}`}
+                onClick={() => setCategory("feeding")}
+              >
+                Feeding
+              </button>
+              <button
+                type="button"
+                className={`choice-chip ${category === "other" ? "active" : ""}`}
+                onClick={() => setCategory("other")}
+              >
+                Other
+              </button>
+            </div>
+          </div>
 
-      {result?.error && (
-        <section className="settings-form">
-          <h2>Error</h2>
-          <p>{result.error}</p>
-        </section>
-      )}
+          <div className="field-group">
+            <label htmlFor="brand">Brand</label>
+            <input
+              id="brand"
+              type="text"
+              placeholder="Enter brand"
+              value={brand}
+              onChange={(e) => setBrand(e.target.value)}
+            />
+          </div>
 
-      {result && !result.error && (
-        <section className="settings-form">
-          <h2>Result</h2>
-          <p><strong>Status:</strong> {result.final_status}</p>
-          <p><strong>Reason:</strong> {result.final_reason}</p>
-          <p><strong>Item Name:</strong> {result.item_name}</p>
-          <p><strong>Detected Brand:</strong> {result.detected_brand}</p>
-          <p><strong>Category:</strong> {result.category}</p>
-          <p><strong>Recall Status:</strong> {result.recall?.recall_status}</p>
+          <div className="field-group">
+            <label htmlFor="year">Year</label>
+            <input
+              id="year"
+              type="text"
+              placeholder="Enter year"
+              value={year}
+              onChange={(e) => setYear(e.target.value)}
+            />
+          </div>
 
-          <pre>{JSON.stringify(result, null, 2)}</pre>
-        </section>
-      )}
+          <div className="field-group full-width">
+            <label htmlFor="description">Description (optional)</label>
+            <textarea
+              id="description"
+              rows="5"
+              placeholder="Add any additional details about this item..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </div>
 
-      <div className="button-row">
-        <Link className="button-link" to="/dashboard">
-          Done
-        </Link>
+          {result?.error && (
+            <section className="settings-form error-box full-width">
+              <h2>Error</h2>
+              <p>{result.error}</p>
+            </section>
+          )}
+
+          {result && !result.error && (
+            <section className="settings-form success-box full-width">
+              <h2>AI Result</h2>
+              <p><strong>Status:</strong> {result.final_status}</p>
+              <p><strong>Reason:</strong> {result.final_reason}</p>
+              <p><strong>Item Name:</strong> {result.item_name}</p>
+              <p><strong>Detected Brand:</strong> {result.detected_brand}</p>
+              <p><strong>Category:</strong> {result.category}</p>
+              <p><strong>Recall Status:</strong> {result.recall?.recall_status}</p>
+            </section>
+          )}
+
+          <div className="button-row upload-button-row full-width">
+            <Link className="button-link secondary-pill" to="/dashboard">
+              Back
+            </Link>
+
+            <button className="primary-pill" type="submit" disabled={loading}>
+              {loading ? "Analyzing..." : "Add availability +"}
+            </button>
+          </div>
+        </form>
       </div>
     </main>
   );
