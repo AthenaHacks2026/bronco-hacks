@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { Link } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
 import "./SettingsPage.css";
-import LogNav from "../components/LogNav";
+import LogoIcon from "../assets/website-icon.png";
 
 function SettingsPage() {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef(null);
 
   const [notifications, setNotifications] = useState({
     recommendedItems: true,
@@ -17,6 +19,24 @@ function SettingsPage() {
     city: "",
     zip: "",
   });
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        profileMenuRef.current &&
+        !profileMenuRef.current.contains(event.target)
+      ) {
+        setIsProfileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+  };
 
   const handleToggle = (key) => {
     setNotifications((prev) => ({
@@ -47,18 +67,90 @@ function SettingsPage() {
 
   return (
     <main className="settings-page">
-      <LogNav
-        locationLabel="City, Zipcode"
-        searchValue={searchQuery}
-        onSearchChange={setSearchQuery}
-        searchPlaceholder="Search Bar"
-        profileName={{
-          username: "username",
-          fullName: "Full Name",
-        }}
-        showDonorDashboard={true}
-        showCaregiverDashboard={true}
-      />
+      <header className="settings-navbar">
+        <div className="settings-logo-group">
+          <img
+            src={LogoIcon}
+            className="settings-logo-icon"
+            alt="Littleloop logo"
+          />
+        </div>
+
+        <div className="settings-location">
+          <span className="settings-location-label">Searching in</span>
+          <strong>City, Zipcode</strong>
+        </div>
+
+        <div className="settings-search-wrap">
+          <input
+            className="settings-search"
+            placeholder="Search Bar"
+            aria-label="Search"
+          />
+        </div>
+
+        <div className="settings-profile-wrap" ref={profileMenuRef}>
+          <button
+            className="settings-profile-trigger"
+            onClick={() => setIsProfileMenuOpen((prev) => !prev)}
+            aria-label="Open profile menu"
+            type="button"
+          >
+            <div className="settings-profile-avatar" />
+          </button>
+
+          {isProfileMenuOpen && (
+            <div className="settings-profile-menu">
+              <div className="settings-profile-menu-header">
+                <div className="settings-profile-menu-avatar" />
+                <div className="settings-profile-menu-user">
+                  <strong>username</strong>
+                  <span>Full Name</span>
+                </div>
+              </div>
+
+              <div className="settings-profile-divider" />
+
+              <div className="settings-profile-menu-links">
+                <Link to="/profile" className="settings-profile-menu-link">
+                  <span className="menu-icon-square" />
+                  Profile
+                </Link>
+
+                <Link to="/dashboard" className="settings-profile-menu-link">
+                  <span className="menu-icon-square" />
+                  Donor Dashboard
+                </Link>
+
+                <Link to="/dashboard" className="settings-profile-menu-link">
+                  <span className="menu-icon-square" />
+                  Caregiver Dashboard
+                </Link>
+              </div>
+
+              <div className="settings-profile-divider" />
+
+              <div className="settings-profile-menu-links">
+                <Link to="/settings" className="settings-profile-menu-link">
+                  <span className="menu-icon-square" />
+                  Settings
+                </Link>
+              </div>
+
+              <div className="settings-profile-divider" />
+
+              <Link
+                to="/"
+                onClick={handleLogout}
+                className="settings-profile-menu-link"
+              >
+                <span className="menu-icon-square" />
+                Sign Out
+              </Link>
+            </div>
+          )}
+        </div>
+      </header>
 
       <section className="settings-content">
         <h1 className="settings-title">Settings</h1>
