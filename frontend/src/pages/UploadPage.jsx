@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useState } from "react";
 
 function UploadPage() {
@@ -66,6 +67,12 @@ function UploadPage() {
 
   return (
     <main className="page">
+      <div className="dashboard-top-actions">
+        <Link className="button-link" to="/dashboard">
+          Back
+        </Link>
+      </div>
+
       <h1>Upload Item</h1>
       <p>Upload a baby item for review and safety checks.</p>
 
@@ -144,6 +151,12 @@ function UploadPage() {
           <pre>{JSON.stringify(result, null, 2)}</pre>
         </section>
       )}
+
+      <div className="button-row">
+        <Link className="button-link" to="/dashboard">
+          Done
+        </Link>
+      </div>
     </main>
   );
 }
