@@ -5,15 +5,16 @@ import './NeedsStep.css'
 
 function NeedsStep({ onboarding, setOnboarding }) {
   const navigate = useNavigate()
+
   const [selectedCategories, setSelectedCategories] = useState([
     'Clothing',
     'Feeding',
     'Essentials',
-    'Essentials',
-    'Essentials',
-    'Essentials',
-    'Essentials',
-    'Essentials',
+    'Diapers',
+    'Nursery',
+    'Health',
+    'Bath',
+    'Transport',
   ])
 
   const canContinue = Boolean(onboarding.needsPath)
@@ -36,9 +37,11 @@ function NeedsStep({ onboarding, setOnboarding }) {
     navigate('/onboarding/recommendations')
   }
 
-  const removeCategory = (indexToRemove) => {
-    setSelectedCategories((current) =>
-      current.filter((_, index) => index !== indexToRemove)
+  const toggleCategory = (category) => {
+    setSelectedCategories((prev) =>
+      prev.includes(category)
+        ? prev.filter((item) => item !== category)
+        : [...prev, category]
     )
   }
 
@@ -159,6 +162,17 @@ function NeedsStep({ onboarding, setOnboarding }) {
     )
   }
 
+  const categories = [
+    'Clothing',
+    'Feeding',
+    'Essentials',
+    'Diapers',
+    'Nursery',
+    'Health',
+    'Bath',
+    'Transport',
+  ]
+
   return (
     <main className="needs-page">
       <header className="needs-header">
@@ -232,12 +246,14 @@ function NeedsStep({ onboarding, setOnboarding }) {
               <h3 className="needs-browse-title">Select categories</h3>
 
               <div className="needs-chip-row">
-                {selectedCategories.map((category, index) => (
+                {categories.map((category, index) => (
                   <button
                     key={`${category}-${index}`}
                     type="button"
-                    className="needs-chip"
-                    onClick={() => removeCategory(index)}
+                    className={`needs-chip ${
+                      selectedCategories.includes(category) ? 'selected' : ''
+                    }`}
+                    onClick={() => toggleCategory(category)}
                   >
                     <span className="needs-chip-close">
                       <svg
