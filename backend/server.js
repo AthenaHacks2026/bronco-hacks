@@ -4,6 +4,8 @@ require("dotenv").config()
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
+const requireAuth = require("./middleware/auth");
+const recommendationsRouter = require("./routes/recommendations");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -26,6 +28,7 @@ app.get("/api/health", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/recommendations", requireAuth, recommendationsRouter);
 
 const startServer = async () => {
   try {

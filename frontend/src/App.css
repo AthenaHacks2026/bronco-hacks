@@ -61,3 +61,31 @@ button,
   border-radius: 999px;
   padding: 4px 10px;
 }
+
+.recommendation-card {
+  border: 1px solid #d8d8d8;
+  border-radius: 10px;
+  padding: 14px;
+  background: #fafafa;
+}
+
+.recommendations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.recommendation-category {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #4b5563;
+}
+
+.recommendation-why {
+  margin-top: 8px;
+  color: #374151;
+}
