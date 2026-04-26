@@ -11,6 +11,78 @@ const {
   enhanceRecommendationsWithGemini,
 } = require("../services/gemini-recommend");
 
+function toStringArray(values) {
+  if (!Array.isArray(values)) return [];
+  return values
+    .map((value) => {
+      if (typeof value === "string") return value.trim();
+      if (value && typeof value === "object") {
+        return (
+          value.displayLabel ||
+          value.category ||
+          value.rawTag ||
+          value.label ||
+          ""
+        )
+          .toString()
+          .trim();
+      }
+      return "";
+    })
+    .filter(Boolean);
+}
+
+function buildProfileSignature(user) {
+  return {
+    userType: user?.onboarding?.userType || "",
+    caregiverType: user?.onboarding?.caregiverType || "",
+    pregnantWeeks: user?.onboarding?.pregnantWeeks || "",
+    postpartumWeeks: user?.onboarding?.postpartumWeeks || "",
+    childAgeValue: user?.onboarding?.childAgeValue || "",
+    childAgeUnit: user?.onboarding?.childAgeUnit || "",
+    needTags: toStringArray(user?.onboarding?.needTags),
+  };
+}
+
+function needsSnapshotRefresh(user, snapshot) {
+  if (!snapshot) return true;
+
+  const completedAt = user?.onboarding?.completedAt
+    ? new Date(user.onboarding.completedAt).getTime()
+    : null;
+  const snapshotCreatedAt = snapshot?.createdAt
+    ? new Date(snapshot.createdAt).getTime()
+    : null;
+
+  if (!completedAt || !snapshotCreatedAt) return false;
+  return snapshotCreatedAt < completedAt;
+}
+
+function applySnapshotToPayload(basePayload, snapshot) {
+  if (!snapshot) return basePayload;
+
+  return {
+    ...basePayload,
+    summary: snapshot.summary || basePayload.summary,
+    normalizedNeeds:
+      Array.isArray(snapshot.normalizedNeeds) && snapshot.normalizedNeeds.length > 0
+        ? snapshot.normalizedNeeds.map((category) => ({
+            rawTag: category,
+            category,
+            reason: "Loaded from saved recommendation snapshot.",
+          }))
+        : basePayload.normalizedNeeds,
+    recommended: {
+      ...basePayload.recommended,
+      categories:
+        Array.isArray(snapshot.recommendedCategories) &&
+        snapshot.recommendedCategories.length > 0
+          ? snapshot.recommendedCategories
+          : basePayload.recommended.categories,
+    },
+  };
+}
+
 function normalizeDbItem(item) {
   return {
     id: String(item._id),
@@ -48,36 +120,45 @@ router.get("/", async (req, res) => {
     }).lean();
     const sourceItems = dbItems.map(normalizeDbItem);
 
+    const profileSignature = buildProfileSignature(user);
+    const latestSnapshot = await RecommendationSnapshot.findOne({
+      caregiverUserId: user._id,
+      "basedOnProfile.userType": profileSignature.userType,
+      "basedOnProfile.caregiverType": profileSignature.caregiverType,
+      "basedOnProfile.pregnantWeeks": profileSignature.pregnantWeeks,
+      "basedOnProfile.postpartumWeeks": profileSignature.postpartumWeeks,
+      "basedOnProfile.childAgeValue": profileSignature.childAgeValue,
+      "basedOnProfile.childAgeUnit": profileSignature.childAgeUnit,
+      "basedOnProfile.needTags": profileSignature.needTags,
+    }).sort({ createdAt: -1 });
+
     const basePayload = buildRecommendationsPayload(user, sourceItems);
-    const payload = await enhanceRecommendationsWithGemini(user, basePayload);
+    const shouldRefreshSnapshot = needsSnapshotRefresh(user, latestSnapshot);
+    const payload = shouldRefreshSnapshot
+      ? await enhanceRecommendationsWithGemini(user, basePayload)
+      : applySnapshotToPayload(basePayload, latestSnapshot);
     const recommendations = getRecommendations(user, sourceItems);
 
-    const snapshotItemIds = []
-      .concat(payload?.lookingFor?.items || [], payload?.recommended?.items || [])
-      .map((item) => item?.id)
-      .filter((id) => /^[a-f0-9]{24}$/i.test(String(id)))
-      .map((id) => id);
+    if (shouldRefreshSnapshot) {
+      const snapshotItemIds = []
+        .concat(payload?.lookingFor?.items || [], payload?.recommended?.items || [])
+        .map((item) => item?.id)
+        .filter((id) => /^[a-f0-9]{24}$/i.test(String(id)))
+        .map((id) => id);
 
-    // Snapshot writes should never break serving recommendations.
-    RecommendationSnapshot.create({
-      caregiverUserId: user._id,
-      basedOnProfile: {
-        userType: user?.onboarding?.userType || "",
-        caregiverType: user?.onboarding?.caregiverType || "",
-        pregnantWeeks: user?.onboarding?.pregnantWeeks || "",
-        postpartumWeeks: user?.onboarding?.postpartumWeeks || "",
-        childAgeValue: user?.onboarding?.childAgeValue || "",
-        childAgeUnit: user?.onboarding?.childAgeUnit || "",
-        needTags: user?.onboarding?.needTags || [],
-      },
-      normalizedNeeds: payload?.normalizedNeeds || [],
-      recommendedCategories: payload?.recommended?.categories || [],
-      recommendedItemIds: snapshotItemIds,
-      summary: payload?.summary || "",
-      source: "db",
-    }).catch((snapshotError) => {
-      console.warn("Failed to store recommendation snapshot:", snapshotError.message);
-    });
+      // Snapshot writes should never break serving recommendations.
+      RecommendationSnapshot.create({
+        caregiverUserId: user._id,
+        basedOnProfile: profileSignature,
+        normalizedNeeds: toStringArray(payload?.normalizedNeeds),
+        recommendedCategories: toStringArray(payload?.recommended?.categories),
+        recommendedItemIds: snapshotItemIds,
+        summary: payload?.summary || "",
+        source: "db",
+      }).catch((snapshotError) => {
+        console.warn("Failed to store recommendation snapshot:", snapshotError.message);
+      });
+    }
 
     res.json({
       ...payload,

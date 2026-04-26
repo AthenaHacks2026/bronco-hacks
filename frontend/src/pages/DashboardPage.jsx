@@ -27,6 +27,27 @@ function DashboardPage() {
 
   const profileMenuRef = useRef(null);
 
+  const getCategoryLabel = (category) => {
+    if (typeof category === "string") return category;
+    if (category && typeof category === "object") {
+      return (
+        category.displayLabel ||
+        category.category ||
+        category.label ||
+        "Category"
+      );
+    }
+    return "Category";
+  };
+
+  const getCategoryKey = (category, index) => {
+    if (typeof category === "string") return `${category}-${index}`;
+    if (category && typeof category === "object") {
+      return `${category.category || category.displayLabel || "category"}-${index}`;
+    }
+    return `category-${index}`;
+  };
+
   function getFallbackCategories(onboarding) {
     const situation = String(onboarding?.situation || "").toLowerCase();
     const weeksPregnant = Number(
@@ -479,10 +500,11 @@ function DashboardPage() {
               ) : (
                 <div className="category-card-grid">
                   {recommendedCategories.map((category, index) => {
+                    const categoryLabel = getCategoryLabel(category);
                     const previewItems = recommendedItems
                       .filter((item) => {
                         const itemCategory = String(item?.category || "").toLowerCase();
-                        const currentCategory = String(category || "").toLowerCase();
+                        const currentCategory = String(categoryLabel || "").toLowerCase();
 
                         return (
                           itemCategory.includes(currentCategory) ||
@@ -492,8 +514,8 @@ function DashboardPage() {
                       .slice(0, 4);
 
                     return (
-                      <div key={`${category}-${index}`} className="category-preview-card">
-                        <h3>{category}</h3>
+                      <div key={getCategoryKey(category, index)} className="category-preview-card">
+                        <h3>{categoryLabel}</h3>
 
                         <div className="category-preview-grid">
                           {previewItems.length > 0 ? (
