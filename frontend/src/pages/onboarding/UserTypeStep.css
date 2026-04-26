@@ -1,0 +1,246 @@
+@import url('https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@300;400;500;700;800&family=Fira+Sans:wght@700;900&display=swap');
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+.user-type-page {
+  min-height: 100vh;
+  background: #fdfaf1;
+  padding: 18px 34px 40px;
+}
+
+.user-type-logo {
+  color: #87b387;
+  font-family: 'Fira Sans', sans-serif;
+  font-size: 45px;
+  font-style: normal;
+  font-weight: 900;
+  line-height: normal;
+}
+
+.user-type-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  max-width: 1100px;
+  margin: 56px auto 0;
+}
+
+.user-type-title {
+  margin: 0;
+  color: #000;
+  text-align: center;
+  font-family: 'Fira Sans', sans-serif;
+  font-size: 48px;
+  font-style: normal;
+  font-weight: 900;
+  line-height: normal;
+}
+
+.user-type-subtitle {
+  margin: 0;
+  color: #4b4b4b;
+  text-align: center;
+  font-family: 'Alegreya Sans', sans-serif;
+  font-size: 24px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: normal;
+}
+
+.user-type-cards {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  width: 100%;
+  margin-top: 12px;
+}
+
+.user-type-card {
+  display: flex;
+  width: 270px;
+  padding: 34px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  border-radius: 4px;
+  background: #fdfaf1;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.user-type-card.caregiver {
+  border: 1.6px solid #dd8c93;
+}
+
+.user-type-card.donor {
+  border: 1.6px solid #87b387;
+}
+
+.user-type-card.both {
+  border: 1.6px solid #d68e5e;
+}
+
+.user-type-card:hover {
+  transform: translateY(-2px);
+}
+
+.user-type-card.selected.caregiver {
+  box-shadow: 0 0 0 3px rgba(221, 140, 147, 0.18);
+}
+
+.user-type-card.selected.donor {
+  box-shadow: 0 0 0 3px rgba(135, 179, 135, 0.18);
+}
+
+.user-type-card.selected.both {
+  box-shadow: 0 0 0 3px rgba(214, 142, 94, 0.18);
+}
+
+.user-type-card-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  align-self: stretch;
+}
+
+.icon-circle {
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-circle.pink {
+  background: #dd8c93;
+}
+
+.icon-circle.green {
+  background: #87b387;
+}
+
+.icon-circle.orange {
+  background: #d68e5e;
+}
+
+.icon-circle svg {
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.user-type-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  align-self: stretch;
+}
+
+.user-type-text h3 {
+  margin: 0;
+  color: #000;
+  font-family: 'Alegreya Sans', sans-serif;
+  font-size: 28px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: normal;
+}
+
+.user-type-text p {
+  margin: 0;
+  color: #4b4b4b;
+  font-family: 'Alegreya Sans', sans-serif;
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+.user-type-button-row {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  width: 100%;
+  margin-top: 12px;
+}
+
+.user-type-back-button,
+.user-type-continue-button {
+  min-width: 160px;
+  height: 52px;
+  border-radius: 999px;
+  border: none;
+  font-family: 'Alegreya Sans', sans-serif;
+  font-size: 22px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: normal;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.user-type-back-button {
+  background: #e8e3d3;
+  color: #333;
+}
+
+.user-type-continue-button {
+  background: #87b387;
+  color: #fff;
+}
+
+.user-type-back-button:hover,
+.user-type-continue-button:hover:not(:disabled) {
+  opacity: 0.95;
+}
+
+.user-type-continue-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+  .user-type-page {
+    padding: 18px 20px 36px;
+  }
+
+  .user-type-content {
+    margin-top: 40px;
+  }
+
+  .user-type-title {
+    font-size: 38px;
+  }
+
+  .user-type-subtitle {
+    font-size: 20px;
+  }
+
+  .user-type-card {
+    width: 100%;
+    max-width: 340px;
+  }
+
+  .user-type-button-row {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .user-type-back-button,
+  .user-type-continue-button {
+    width: 100%;
+    max-width: 340px;
+  }
+}
