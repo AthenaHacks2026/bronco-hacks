@@ -1,9 +1,8 @@
 import CategoryItemsPage from './CategoryItemsPage'
 
-import image1 from '../../assets/image1.png'
-import image2 from '../../assets/image2.png'
-import image3 from '../../assets/image3.png'
-import image4 from '../../assets/image4.png'
+import Baby1 from '../../assets/Baby1.png'
+import Baby2 from '../../assets/Baby2.png'
+import Baby3 from '../../assets/Baby3.png'
 
 function AllClothesPage() {
   return (
@@ -23,7 +22,7 @@ function AllClothesPage() {
           donor: 'Jessica41',
           location: 'Pomona • 6 miles',
           posted: '5 days ago',
-          image: image1,
+          image: Baby1,
         },
         {
           id: 2,
@@ -32,7 +31,7 @@ function AllClothesPage() {
           donor: 'naolily',
           location: 'Chino Hills • 12 miles',
           posted: '1 week ago',
-          image: image2,
+          image: Baby2,
         },
         {
           id: 3,
@@ -41,7 +40,7 @@ function AllClothesPage() {
           donor: 'Jessica41',
           location: 'Pomona • 6 miles',
           posted: '5 days ago',
-          image: image1,
+          image: Baby1,
         },
         {
           id: 4,
@@ -50,7 +49,7 @@ function AllClothesPage() {
           donor: 'naolily',
           location: 'Chino Hills • 12 miles',
           posted: '1 week ago',
-          image: image2,
+          image: Baby2,
         },
         {
           id: 5,
@@ -59,7 +58,7 @@ function AllClothesPage() {
           donor: 'Julio121',
           location: 'San Dimas • 12 miles',
           posted: '1 week ago',
-          image: image3,
+          image: Baby3,
         },
         {
           id: 6,
@@ -68,7 +67,7 @@ function AllClothesPage() {
           donor: 'aaamber1',
           location: 'San Dimas • 13 miles',
           posted: '3 days ago',
-          image: image4,
+          image: Baby1,
         },
         {
           id: 7,
@@ -77,7 +76,7 @@ function AllClothesPage() {
           donor: 'Julio121',
           location: 'San Dimas • 12 miles',
           posted: '1 week ago',
-          image: image3,
+          image: Baby3,
         },
         {
           id: 8,
@@ -86,7 +85,7 @@ function AllClothesPage() {
           donor: 'Julio121',
           location: 'San Dimas • 12 miles',
           posted: '1 week ago',
-          image: image3,
+          image: Baby3,
         },
         {
           id: 9,
@@ -95,7 +94,7 @@ function AllClothesPage() {
           donor: 'Julio121',
           location: 'San Dimas • 12 miles',
           posted: '1 week ago',
-          image: image3,
+          image: Baby3,
         },
       ]}
     />

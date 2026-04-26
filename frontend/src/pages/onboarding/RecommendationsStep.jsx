@@ -2,19 +2,9 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './RecommendationsStep.css'
 import websiteIcon from '../../assets/website-icon.png'
-
-import image1 from '../../assets/image1.png'
-import image2 from '../../assets/image2.png'
-import image3 from '../../assets/image3.png'
-import image4 from '../../assets/image4.png'
-import image5 from '../../assets/image5.png'
-import image6 from '../../assets/image6.png'
-import image7 from '../../assets/image7.png'
-import image8 from '../../assets/image8.png'
-import image9 from '../../assets/image9.png'
-import image10 from '../../assets/image10.png'
-import image11 from '../../assets/image11.png'
-import image12 from '../../assets/image12.png'
+import Baby1 from '../../assets/Baby1.png'
+import Baby2 from '../../assets/Baby2.png'
+import Baby3 from '../../assets/Baby3.png'
 
 function RecommendationsStep({ submitOnboarding }) {
   const navigate = useNavigate()
@@ -27,30 +17,30 @@ function RecommendationsStep({ submitOnboarding }) {
       title: 'All Clothes',
       route: '/items/clothes',
       items: [
-        { image: image1, name: 'Baby Onesie' },
-        { image: image2, name: 'Baby Pajamas' },
-        { image: image3, name: 'Baby Socks' },
-        { image: image4, name: 'Swaddle Blanket' },
+        { image: Baby1, name: 'Baby Onesie' },
+        { image: Baby2, name: 'Baby Pajamas' },
+        { image: Baby3, name: 'Baby Socks' },
+        { image: Baby1, name: 'Swaddle Blanket' },
       ],
     },
     {
       title: 'All Toys',
       route: '/items/toys',
       items: [
-        { image: image5, name: 'Soft Toy' },
-        { image: image6, name: 'Rattle Toy' },
-        { image: image7, name: 'Teething Toy' },
-        { image: image8, name: 'Plush Animal' },
+        { image: Baby2, name: 'Soft Toy' },
+        { image: Baby3, name: 'Rattle Toy' },
+        { image: Baby1, name: 'Teething Toy' },
+        { image: Baby2, name: 'Plush Animal' },
       ],
     },
     {
       title: 'All Feeding',
       route: '/items/feeding',
       items: [
-        { image: image9, name: 'Baby Bottle' },
-        { image: image10, name: 'Burp Cloth' },
-        { image: image11, name: 'Bibs' },
-        { image: image12, name: 'Feeding Pillow' },
+        { image: Baby3, name: 'Baby Bottle' },
+        { image: Baby1, name: 'Burp Cloth' },
+        { image: Baby2, name: 'Bibs' },
+        { image: Baby3, name: 'Feeding Pillow' },
       ],
     },
   ]
