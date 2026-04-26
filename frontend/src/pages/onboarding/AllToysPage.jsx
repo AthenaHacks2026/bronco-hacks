@@ -1,5 +1,10 @@
 import CategoryItemsPage from './CategoryItemsPage'
 
+import image5 from '../../assets/image5.png'
+import image6 from '../../assets/image6.png'
+import image7 from '../../assets/image7.png'
+import image8 from '../../assets/image8.png'
+
 function AllToysPage() {
   return (
     <CategoryItemsPage
@@ -17,7 +22,7 @@ function AllToysPage() {
           donor: 'maria22',
           location: 'Pomona • 4 miles',
           posted: '2 days ago',
-          image: '/images/toys1.jpg',
+          image: image5,
         },
         {
           id: 2,
@@ -26,7 +31,7 @@ function AllToysPage() {
           donor: 'kevin88',
           location: 'La Verne • 7 miles',
           posted: '4 days ago',
-          image: '/images/toys2.jpg',
+          image: image6,
         },
         {
           id: 3,
@@ -35,7 +40,7 @@ function AllToysPage() {
           donor: 'parenthelp',
           location: 'Claremont • 8 miles',
           posted: '1 week ago',
-          image: '/images/toys3.jpg',
+          image: image7,
         },
         {
           id: 4,
@@ -44,7 +49,7 @@ function AllToysPage() {
           donor: 'lucy11',
           location: 'Chino • 10 miles',
           posted: '3 days ago',
-          image: '/images/toys4.jpg',
+          image: image8,
         },
         {
           id: 5,
@@ -53,7 +58,7 @@ function AllToysPage() {
           donor: 'maria22',
           location: 'Pomona • 4 miles',
           posted: '2 days ago',
-          image: '/images/toys1.jpg',
+          image: image5,
         },
         {
           id: 6,
@@ -62,7 +67,7 @@ function AllToysPage() {
           donor: 'kevin88',
           location: 'La Verne • 7 miles',
           posted: '4 days ago',
-          image: '/images/toys2.jpg',
+          image: image6,
         },
       ]}
     />

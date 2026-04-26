@@ -1,5 +1,10 @@
 import CategoryItemsPage from './CategoryItemsPage'
 
+import image9 from '../../assets/image9.png'
+import image10 from '../../assets/image10.png'
+import image11 from '../../assets/image11.png'
+import image12 from '../../assets/image12.png'
+
 function AllFeedingPage() {
   return (
     <CategoryItemsPage
@@ -17,7 +22,7 @@ function AllFeedingPage() {
           donor: 'caremom1',
           location: 'Pomona • 5 miles',
           posted: '2 days ago',
-          image: '/images/feed1.jpg',
+          image: image9,
         },
         {
           id: 2,
@@ -26,7 +31,7 @@ function AllFeedingPage() {
           donor: 'amy77',
           location: 'Montclair • 9 miles',
           posted: '6 days ago',
-          image: '/images/feed2.jpg',
+          image: image10,
         },
         {
           id: 3,
@@ -35,7 +40,7 @@ function AllFeedingPage() {
           donor: 'rosa12',
           location: 'Upland • 11 miles',
           posted: '1 week ago',
-          image: '/images/feed3.jpg',
+          image: image11,
         },
         {
           id: 4,
@@ -44,7 +49,7 @@ function AllFeedingPage() {
           donor: 'linda34',
           location: 'Ontario • 14 miles',
           posted: '5 days ago',
-          image: '/images/feed4.jpg',
+          image: image12,
         },
         {
           id: 5,
@@ -53,7 +58,7 @@ function AllFeedingPage() {
           donor: 'caremom1',
           location: 'Pomona • 5 miles',
           posted: '2 days ago',
-          image: '/images/feed1.jpg',
+          image: image9,
         },
         {
           id: 6,
@@ -62,7 +67,7 @@ function AllFeedingPage() {
           donor: 'amy77',
           location: 'Montclair • 9 miles',
           posted: '6 days ago',
-          image: '/images/feed2.jpg',
+          image: image10,
         },
       ]}
     />
