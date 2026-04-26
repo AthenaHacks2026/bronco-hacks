@@ -3,6 +3,7 @@ const multer = require("multer");
 const axios = require("axios");
 const Item = require("../models/Item");
 const { GoogleGenAI } = require("@google/genai");
+const requireAuth = require("../middleware/requireAuth");
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -280,7 +281,7 @@ function applySafetyRules(parsed, recallResult) {
   };
 }
 
-router.post("/analyze-image", upload.single("image"), async (req, res) => {
+router.post("/analyze-image", requireAuth, upload.single("image"), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "No image uploaded." });
@@ -341,6 +342,12 @@ Important:
     const decision = applySafetyRules(parsed, recall);
 
     const savedItem = await Item.create({
+      donorUserId: req.userId,
+      userId: req.userId,
+      title: parsed.item_name || text || "Donated item",
+      description: text,
+      rawTags: [],
+      status: decision.final_status === "approved" ? "available" : "removed",
       text,
       condition,
       declaredBrand: brand,

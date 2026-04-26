@@ -8,6 +8,7 @@ const userRoutes = require("./routes/userRoutes");
 const requireAuth = require("./middleware/requireAuth");
 const recommendationsRouter = require("./routes/recommendations");
 const itemRoutes = require("./routes/itemRoutes");
+const claimRoutes = require("./routes/claimRoutes");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -35,6 +36,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/recommendations", requireAuth, recommendationsRouter);
 app.use("/api/items", itemRoutes);
+app.use("/api/claims", requireAuth, claimRoutes);
 
 // Start server
 const startServer = async () => {
