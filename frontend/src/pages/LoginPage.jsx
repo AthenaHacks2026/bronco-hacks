@@ -5,6 +5,7 @@ import './LoginPage.css'
 function LoginPage() {
   const [form, setForm] = useState({ email: '', password: '' })
   const [message, setMessage] = useState('')
+  const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
   const handleChange = (event) => {
@@ -14,7 +15,8 @@ function LoginPage() {
 
   const handleSubmit = async (event) => {
     event.preventDefault()
-    setMessage('Loading...')
+    setLoading(true)
+    setMessage('')
 
     try {
       const response = await fetch('/api/auth/login', {
@@ -23,18 +25,35 @@ function LoginPage() {
         body: JSON.stringify(form),
       })
 
-      const data = await response.json()
-      setMessage(data.message || `${response.status} ${response.statusText}`)
+      const rawText = await response.text()
+      const data = rawText ? JSON.parse(rawText) : {}
+
+      if (!response.ok) {
+        setMessage(
+          data.error ||
+            data.message ||
+            `Login failed: ${response.status} ${response.statusText}`
+        )
+        return
+      }
+
+      setMessage(data.message || 'Login successful.')
 
       if (data.token) {
         localStorage.setItem('token', data.token)
+
         if (data.user?.id) {
           localStorage.setItem('userId', data.user.id)
         }
+
         navigate('/dashboard')
+      } else {
+        setMessage('Login succeeded, but no token was returned.')
       }
     } catch (error) {
       setMessage(`Network error: ${error.message}`)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -82,6 +101,7 @@ function LoginPage() {
                 Email Address
               </span>
             </label>
+
             <input
               id="email"
               name="email"
@@ -119,6 +139,7 @@ function LoginPage() {
                 Password
               </span>
             </label>
+
             <input
               id="password"
               name="password"
@@ -129,8 +150,8 @@ function LoginPage() {
               required
             />
 
-            <button type="submit" className="login-button">
-              Log In
+            <button type="submit" className="login-button" disabled={loading}>
+              {loading ? 'Logging in...' : 'Log In'}
             </button>
           </form>
 
