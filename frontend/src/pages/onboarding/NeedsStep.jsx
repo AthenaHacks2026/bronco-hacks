@@ -6,7 +6,7 @@ import './NeedsStep.css'
 function NeedsStep({ onboarding, setOnboarding }) {
   const navigate = useNavigate()
 
-  const [selectedCategories, setSelectedCategories] = useState([
+  const categories = [
     'Clothing',
     'Feeding',
     'Essentials',
@@ -15,9 +15,15 @@ function NeedsStep({ onboarding, setOnboarding }) {
     'Health',
     'Bath',
     'Transport',
-  ])
+  ]
 
-  const canContinue = Boolean(onboarding.needsPath)
+  const [selectedCategories, setSelectedCategories] = useState(
+    onboarding.selectedCategories || categories
+  )
+
+  const canContinue =
+    onboarding.needsPath === 'recommend' ||
+    (onboarding.needsPath === 'browse' && selectedCategories.length > 0)
 
   const handleSelect = (value) => {
     setOnboarding((prev) => ({
@@ -26,23 +32,37 @@ function NeedsStep({ onboarding, setOnboarding }) {
     }))
   }
 
-  const handleContinue = () => {
-    if (!canContinue) return
-
-    if (onboarding.needsPath === 'browse') {
-      navigate('/onboarding/needs-tags')
-      return
-    }
-
-    navigate('/onboarding/recommendations')
-  }
-
   const toggleCategory = (category) => {
     setSelectedCategories((prev) =>
       prev.includes(category)
         ? prev.filter((item) => item !== category)
         : [...prev, category]
     )
+  }
+
+  const handleContinue = () => {
+    if (!canContinue) return
+
+    if (onboarding.needsPath === 'browse') {
+      setOnboarding((prev) => ({
+        ...prev,
+        needsPath: 'browse',
+        selectedCategories,
+      }))
+
+      navigate('/dashboard')
+      return
+    }
+
+    if (onboarding.needsPath === 'recommend') {
+      setOnboarding((prev) => ({
+        ...prev,
+        needsPath: 'recommend',
+        selectedCategories: [],
+      }))
+
+      navigate('/onboarding/recommendations')
+    }
   }
 
   const renderChipIcon = (category, index) => {
@@ -162,17 +182,6 @@ function NeedsStep({ onboarding, setOnboarding }) {
     )
   }
 
-  const categories = [
-    'Clothing',
-    'Feeding',
-    'Essentials',
-    'Diapers',
-    'Nursery',
-    'Health',
-    'Bath',
-    'Transport',
-  ]
-
   return (
     <main className="needs-page">
       <header className="needs-header">
@@ -184,102 +193,91 @@ function NeedsStep({ onboarding, setOnboarding }) {
 
       <section className="needs-content">
         <div className="needs-progress">
-          <div className="needs-step active">1</div>
+          <div className="needs-step">1</div>
           <div className="needs-line" />
-          <div className="needs-step active">2</div>
+          <div className="needs-step">2</div>
           <div className="needs-line" />
-          <div className="needs-step active">3</div>
+          <div className="needs-step">3</div>
         </div>
 
         <h1 className="needs-title">What are you looking for?</h1>
         <p className="needs-subtitle">Help us understand your needs</p>
 
         <div className="needs-options">
-          <button
-            type="button"
-            className={`needs-option ${
-              onboarding.needsPath === 'browse' ? 'selected' : ''
-            }`}
-            onClick={() => handleSelect('browse')}
-          >
-            <div className="needs-option-left">
-              <div className="needs-option-icon">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                >
-                  <path
-                    d="M11 19C15.4183 19 19 15.4183 19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11C3 15.4183 6.58172 19 11 19Z"
-                    stroke="#FDFAF1"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M21.0002 21L16.7002 16.7"
-                    stroke="#FDFAF1"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-
-              <div className="needs-option-text">
-                <h3>I know what I need</h3>
-                <p>Browse by category</p>
-              </div>
-            </div>
-
-            <div className="needs-option-right">
-              <span className="needs-chevron">
-                {onboarding.needsPath === 'browse' ? '⌃' : '⌄'}
-              </span>
-            </div>
-          </button>
-
-          {onboarding.needsPath === 'browse' && (
-            <div className="needs-browse-panel">
-              <h3 className="needs-browse-title">Select categories</h3>
-
-              <div className="needs-chip-row">
-                {categories.map((category, index) => (
-                  <button
-                    key={`${category}-${index}`}
-                    type="button"
-                    className={`needs-chip ${
-                      selectedCategories.includes(category) ? 'selected' : ''
-                    }`}
-                    onClick={() => toggleCategory(category)}
+          <div className="needs-option-group">
+            <button
+              type="button"
+              className={`needs-option ${
+                onboarding.needsPath === 'browse' ? 'selected' : ''
+              }`}
+              onClick={() => handleSelect('browse')}
+            >
+              <div className="needs-option-left">
+                <div className="needs-option-icon">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
                   >
-                    <span className="needs-chip-close">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="11"
-                        height="11"
-                        viewBox="0 0 11 11"
-                        fill="none"
-                      >
-                        <path
-                          d="M10.0026 11L5.50354 6.49679L1.0045 11L0 9.99614L4.50611 5.5L0 1.00386L1.0045 0L5.50354 4.50321L10.0026 0.00706957L11 1.00386L6.50096 5.5L11 9.99614L10.0026 11Z"
-                          fill="black"
-                        />
-                      </svg>
-                    </span>
+                    <path
+                      d="M11 19C15.4183 19 19 15.4183 19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11C3 15.4183 6.58172 19 11 19Z"
+                      stroke="#FDFAF1"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M21.0002 21L16.7002 16.7"
+                      stroke="#FDFAF1"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
 
-                    <span className="needs-chip-icon">
-                      {renderChipIcon(category, index)}
-                    </span>
-
-                    <span className="needs-chip-label">{category}</span>
-                  </button>
-                ))}
+                <div className="needs-option-text">
+                  <h3>I know what I need</h3>
+                  <p>Browse by category</p>
+                </div>
               </div>
-            </div>
-          )}
+
+              <div className="needs-option-right">
+                <span className="needs-chevron">
+                  {onboarding.needsPath === 'browse' ? '˄' : '˅'}
+                </span>
+              </div>
+            </button>
+
+            {onboarding.needsPath === 'browse' && (
+              <div className="needs-browse-panel">
+                <h3 className="needs-browse-title">Select categories</h3>
+
+                <div className="needs-chip-row">
+                  {categories.map((category, index) => {
+                    const isSelected = selectedCategories.includes(category)
+
+                    return (
+                      <button
+                        key={`${category}-${index}`}
+                        type="button"
+                        className={`needs-chip ${isSelected ? 'selected' : ''}`}
+                        onClick={() => toggleCategory(category)}
+                      >
+                        <span className="needs-chip-close">×</span>
+                        <span className="needs-chip-icon">
+                          {renderChipIcon(category, index)}
+                        </span>
+                        <span className="needs-chip-label">{category}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
 
           <button
             type="button"
@@ -326,8 +324,6 @@ function NeedsStep({ onboarding, setOnboarding }) {
                 <p>Show me recommendations</p>
               </div>
             </div>
-
-            <div className="needs-option-right" />
           </button>
         </div>
 
@@ -346,7 +342,7 @@ function NeedsStep({ onboarding, setOnboarding }) {
             onClick={handleContinue}
             disabled={!canContinue}
           >
-            Go to Dashboard →
+            Continue
           </button>
         </div>
       </section>
