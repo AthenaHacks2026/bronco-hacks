@@ -4,6 +4,7 @@ import './App.css'
 
 import { INITIAL_ONBOARDING } from './constants/onboarding'
 
+import ProfilePage from './pages/ProfilePage'
 import DashboardPage from './pages/DashboardPage'
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
@@ -170,6 +171,7 @@ function App() {
 
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/upload" element={<UploadPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
         <Route path="/settings" element={<SettingsPage />} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
