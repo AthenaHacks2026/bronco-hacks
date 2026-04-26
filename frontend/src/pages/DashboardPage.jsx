@@ -1,9 +1,8 @@
 import { Link } from "react-router-dom";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import "./DashboardPage.css";
-
-import LogoIcon from "../assets/website-icon.png";
+import LogNav from "../components/LogNav";
 
 function DashboardPage() {
   const [lookingForItems, setLookingForItems] = useState([]);
@@ -18,14 +17,11 @@ function DashboardPage() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [locationLabel, setLocationLabel] = useState("City, Zipcode");
-  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [onboardingData, setOnboardingData] = useState({});
   const [profileName, setProfileName] = useState({
     username: "username",
     fullName: "Full Name",
   });
-
-  const profileMenuRef = useRef(null);
 
   const getCategoryLabel = (category) => {
     if (typeof category === "string") return category;
@@ -119,20 +115,6 @@ function DashboardPage() {
 
     return "Based on your current stage, we’ve selected categories and items that may be most helpful right now.";
   }
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        profileMenuRef.current &&
-        !profileMenuRef.current.contains(event.target)
-      ) {
-        setIsProfileMenuOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -236,10 +218,6 @@ function DashboardPage() {
     fetchDashboardData();
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-  };
-
   const filteredLookingForItems = useMemo(() => {
     if (!searchQuery.trim()) return lookingForItems;
 
@@ -271,115 +249,15 @@ function DashboardPage() {
 
   return (
     <main className="dashboard-page">
-      <header className="dashboard-navbar">
-        <div className="dashboard-logo-group">
-          <img
-            src={LogoIcon}
-            alt="Littleloop logo"
-            className="dashboard-logo-icon"
-          />
-        </div>
-
-        <div className="dashboard-location">
-          <span className="dashboard-location-label">Searching in</span>
-          <strong>{locationLabel}</strong>
-        </div>
-
-        <div className="dashboard-search-wrap">
-          <input
-            type="text"
-            placeholder="Search for clothes, bottles, toys..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="dashboard-search"
-          />
-        </div>
-
-        <div className="dashboard-profile-wrap" ref={profileMenuRef}>
-          <button
-            type="button"
-            className="dashboard-profile-trigger"
-            onClick={() => setIsProfileMenuOpen((prev) => !prev)}
-            aria-label="Open profile menu"
-          >
-            <div className="dashboard-profile-avatar" />
-          </button>
-
-          {isProfileMenuOpen && (
-            <div className="dashboard-profile-menu">
-              <div className="dashboard-profile-menu-header">
-                <div className="dashboard-profile-menu-avatar" />
-                <div className="dashboard-profile-menu-user">
-                  <strong>{profileName.username}</strong>
-                  <span>{profileName.fullName}</span>
-                </div>
-              </div>
-
-              <div className="dashboard-profile-divider" />
-
-              <div className="dashboard-profile-menu-links">
-                <Link
-                  to="/profile"
-                  className="dashboard-profile-menu-link"
-                  onClick={() => setIsProfileMenuOpen(false)}
-                >
-                  <span className="menu-icon-square" />
-                  Profile
-                </Link>
-
-                {userRoles.isDonor && (
-                  <Link
-                    to="/dashboard"
-                    className="dashboard-profile-menu-link"
-                    onClick={() => setIsProfileMenuOpen(false)}
-                  >
-                    <span className="menu-icon-square" />
-                    Donor Dashboard
-                  </Link>
-                )}
-
-                {userRoles.isCaregiver && (
-                  <Link
-                    to="/dashboard"
-                    className="dashboard-profile-menu-link"
-                    onClick={() => setIsProfileMenuOpen(false)}
-                  >
-                    <span className="menu-icon-square" />
-                    Caregiver Dashboard
-                  </Link>
-                )}
-              </div>
-
-              <div className="dashboard-profile-divider" />
-
-              <div className="dashboard-profile-menu-links">
-                <Link
-                  to="/settings"
-                  className="dashboard-profile-menu-link"
-                  onClick={() => setIsProfileMenuOpen(false)}
-                >
-                  <span className="menu-icon-square" />
-                  Settings
-                </Link>
-              </div>
-
-              <div className="dashboard-profile-divider" />
-
-              <Link
-                to="/"
-                onClick={() => {
-                  handleLogout();
-                  setIsProfileMenuOpen(false);
-                }}
-                className="dashboard-profile-menu-link"
-              >
-                <span className="menu-icon-square" />
-                Sign Out
-              </Link>
-            </div>
-          )}
-        </div>
-      </header>
+      <LogNav
+        locationLabel={locationLabel}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search for clothes, bottles, toys..."
+        profileName={profileName}
+        showDonorDashboard={userRoles.isDonor}
+        showCaregiverDashboard={userRoles.isCaregiver}
+      />
 
       <section className="dashboard-content">
         {showDonorDashboard ? (
@@ -514,7 +392,10 @@ function DashboardPage() {
                       .slice(0, 4);
 
                     return (
-                      <div key={getCategoryKey(category, index)} className="category-preview-card">
+                      <div
+                        key={getCategoryKey(category, index)}
+                        className="category-preview-card"
+                      >
                         <h3>{categoryLabel}</h3>
 
                         <div className="category-preview-grid">
