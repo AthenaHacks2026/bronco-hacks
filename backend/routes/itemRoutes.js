@@ -332,6 +332,37 @@ function applySafetyRules(parsed, recallResult) {
   };
 }
 
+router.delete("/:id", requireAuth, async (req, res) => {
+  try {
+    const item = await Item.findById(req.params.id);
+
+    if (!item) {
+      return res.status(404).json({ error: "Item not found." });
+    }
+
+    const ownerId =
+      item.donorUserId ||
+      item.userId ||
+      item.ownerUserId ||
+      item.ownerId ||
+      item.createdByUserId ||
+      item.createdBy;
+
+    if (String(ownerId || "") !== String(req.userId)) {
+      return res.status(403).json({ error: "Not allowed to delete this item." });
+    }
+
+    await Item.findByIdAndDelete(req.params.id);
+
+    return res.status(200).json({ message: "Item deleted successfully." });
+  } catch (error) {
+    return res.status(500).json({
+      error: "Failed to delete item.",
+      details: error.message,
+    });
+  }
+});
+
 router.post("/analyze-image", requireAuth, upload.single("image"), async (req, res) => {
   try {
     if (!req.file) {

@@ -403,6 +403,24 @@ body {
   background: #ece7de;
 }
 
+.donation-item-card {
+  position: relative;
+}
+
+.donation-item-delete-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  background: var(--pink);
+  color: white;
+  font-size: 22px;
+  cursor: pointer;
+}
+
 .category-view-btn {
   border: none;
   background: none;

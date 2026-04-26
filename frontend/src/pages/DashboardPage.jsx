@@ -240,6 +240,24 @@ function DashboardPage() {
     localStorage.removeItem("token");
   };
 
+  const handleDeleteDonation = async (itemId) => {
+    const token = localStorage.getItem("token");
+
+    try {
+      await axios.delete(`/api/items/${itemId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setDonorItems((prevItems) =>
+        prevItems.filter(
+          (item) => String(item._id || item.id) !== String(itemId)
+        )
+      );
+    } catch (err) {
+      console.error("Delete donation failed:", err);
+    }
+  };
+
   const filteredLookingForItems = useMemo(() => {
     if (!searchQuery.trim()) return lookingForItems;
 
@@ -413,42 +431,55 @@ function DashboardPage() {
               </section>
             ) : (
               <section className="donor-cards-grid">
-                {donorItems.map((item) => (
-                  <article
-                    key={String(item._id || item.id)}
-                    className="donation-item-card"
-                  >
-                    <img
-                      src={
-                        item?.imageUrl ||
-                        item?.photoUrl ||
-                        item?.image ||
-                        "https://via.placeholder.com/180x140?text=Item"
-                      }
-                      alt={item?.title || "Donation"}
-                      className="donation-item-image"
-                    />
+                {donorItems.map((item) => {
+                  const itemId = String(item._id || item.id);
 
-                    <div className="donation-item-body">
-                      <h3>{item?.title || item?.itemName || item?.text || "Donated item"}</h3>
-
-                      <ul className="donation-item-meta">
-                        <li>{item?.category || "Category"}</li>
-                        <li>Donated by User</li>
-                        <li>{item?.city || "Pomona"} • #{item?.miles || "miles"}</li>
-                        <li>
-                          {item?.createdAt
-                            ? `Posted ${new Date(item.createdAt).toLocaleDateString()}`
-                            : "Posted recently"}
-                        </li>
-                      </ul>
-
-                      <button type="button" className="donation-item-action">
-                        View Item →
+                  return (
+                    <article
+                      key={itemId}
+                      className="donation-item-card"
+                    >
+                      <button
+                        type="button"
+                        className="donation-item-delete-btn"
+                        aria-label="Delete donation"
+                        onClick={() => handleDeleteDonation(itemId)}
+                      >
+                        ×
                       </button>
-                    </div>
-                  </article>
-                ))}
+
+                      <img
+                        src={
+                          item?.imageUrl ||
+                          item?.photoUrl ||
+                          item?.image ||
+                          "https://via.placeholder.com/180x140?text=Item"
+                        }
+                        alt={item?.title || "Donation"}
+                        className="donation-item-image"
+                      />
+
+                      <div className="donation-item-body">
+                        <h3>{item?.title || item?.itemName || item?.text || "Donated item"}</h3>
+
+                        <ul className="donation-item-meta">
+                          <li>{item?.category || "Category"}</li>
+                          <li>Donated by User</li>
+                          <li>{item?.city || "Pomona"} • #{item?.miles || "miles"}</li>
+                          <li>
+                            {item?.createdAt
+                              ? `Posted ${new Date(item.createdAt).toLocaleDateString()}`
+                              : "Posted recently"}
+                          </li>
+                        </ul>
+
+                        <button type="button" className="donation-item-action">
+                          View Item →
+                        </button>
+                      </div>
+                    </article>
+                  );
+                })}
               </section>
             )}
           </>
