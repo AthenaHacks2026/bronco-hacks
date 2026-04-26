@@ -1,42 +1,46 @@
-import { useNavigate } from 'react-router-dom'
-import logo from '../../assets/website-icon.png'
-import './CaregiverInfoStep.css'
+import { useNavigate } from "react-router-dom";
+import logo from "../../assets/website-icon.png";
+import "./CaregiverInfoStep.css";
 
 function CaregiverInfoStep({ onboarding, setOnboarding }) {
-  const navigate = useNavigate()
-  const canContinue = Boolean(onboarding.caregiverType)
+  const navigate = useNavigate();
+  const canContinue = Boolean(onboarding.caregiverType);
 
   const handleContinue = () => {
-    if (!canContinue) return
-    navigate(`/onboarding/${onboarding.caregiverType}`)
-  }
+    if (!canContinue) return;
+    navigate(`/onboarding/${onboarding.caregiverType}`);
+  };
 
   const handleBack = () => {
-    if (onboarding.userType === 'both') {
-      navigate('/onboarding/donor-info')
-      return
+    if (onboarding.userType === "both") {
+      navigate("/onboarding/donor-info");
+      return;
     }
-    navigate('/onboarding/user-type')
-  }
+    navigate("/onboarding/user-type");
+  };
 
   const handleSelect = (type) => {
     setOnboarding((prev) => ({
       ...prev,
-      caregiverType: prev.caregiverType === type ? '' : type,
-      pregnantWeeks: '',
-      postpartumWeeks: '',
-      childAgeValue: '',
-      childAgeUnit: '',
-      needsConfidence: '',
+      caregiverType: prev.caregiverType === type ? "" : type,
+      pregnantWeeks: "",
+      postpartumWeeks: "",
+      childAgeValue: "",
+      childAgeUnit: "",
+      needsConfidence: "",
       needTags: [],
-    }))
-  }
+    }));
+  };
 
   return (
     <main className="caregiver-page">
       <header className="caregiver-header">
         <div className="caregiver-brand-wrap">
-          <img src={logo} alt="LittleLoop logo" className="caregiver-logo-img" />
+          <img
+            src={logo}
+            alt="LittleLoop logo"
+            className="caregiver-logo-img"
+          />
           <span className="caregiver-brand-text">LittleLoop</span>
         </div>
       </header>
@@ -59,11 +63,11 @@ function CaregiverInfoStep({ onboarding, setOnboarding }) {
           <button
             type="button"
             className={`caregiver-card ${
-              onboarding.caregiverType === 'pregnant' ? 'selected' : ''
+              onboarding.caregiverType === "pregnant" ? "selected" : ""
             }`}
-            onClick={() => handleSelect('pregnant')}
+            onClick={() => handleSelect("pregnant")}
           >
-            {onboarding.caregiverType === 'pregnant' && (
+            {onboarding.caregiverType === "pregnant" && (
               <span className="caregiver-check">✓</span>
             )}
 
@@ -98,11 +102,11 @@ function CaregiverInfoStep({ onboarding, setOnboarding }) {
           <button
             type="button"
             className={`caregiver-card ${
-              onboarding.caregiverType === 'postpartum' ? 'selected' : ''
+              onboarding.caregiverType === "postpartum" ? "selected" : ""
             }`}
-            onClick={() => handleSelect('postpartum')}
+            onClick={() => handleSelect("postpartum")}
           >
-            {onboarding.caregiverType === 'postpartum' && (
+            {onboarding.caregiverType === "postpartum" && (
               <span className="caregiver-check">✓</span>
             )}
 
@@ -138,11 +142,11 @@ function CaregiverInfoStep({ onboarding, setOnboarding }) {
           <button
             type="button"
             className={`caregiver-card ${
-              onboarding.caregiverType === 'other' ? 'selected' : ''
+              onboarding.caregiverType === "other" ? "selected" : ""
             }`}
-            onClick={() => handleSelect('other')}
+            onClick={() => handleSelect("other")}
           >
-            {onboarding.caregiverType === 'other' && (
+            {onboarding.caregiverType === "other" && (
               <span className="caregiver-check">✓</span>
             )}
 
@@ -216,7 +220,7 @@ function CaregiverInfoStep({ onboarding, setOnboarding }) {
         </div>
       </section>
     </main>
-  )
+  );
 }
 
-export default CaregiverInfoStep
+export default CaregiverInfoStep;

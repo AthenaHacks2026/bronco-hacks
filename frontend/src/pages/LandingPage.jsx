@@ -5,26 +5,7 @@ import LogoIcon from "../assets/website-icon.png";
 import Baby1 from "../assets/Baby3.png";
 import Baby2 from "../assets/Baby1.png";
 import Baby3 from "../assets/Baby2.png";
-
-function Leaf({ className = "" }) {
-  return (
-    <div className={`leaf ${className}`}>
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="39"
-        height="67"
-        viewBox="0 0 39 67"
-        fill="none"
-      >
-        <path
-          d="M0.57716 37.11C-0.91584 19.4953 19.7524 0.681458 19.7524 0.681458C19.7524 0.681458 39.895 19.6582 38.4231 37.11C37.1502 52.2022 19.7524 65.6815 19.7524 65.6815C19.7524 65.6815 1.87232 52.3906 0.57716 37.11Z"
-          fill="#87B387"
-          stroke="#87B387"
-        />
-      </svg>
-    </div>
-  );
-}
+import Trash from "../assets/Trash.png";
 
 function LandingPage() {
   return (
@@ -46,9 +27,6 @@ function LandingPage() {
       </header>
 
       <section className="hero">
-        <Leaf className="leaf-hero-left" />
-        <Leaf className="leaf-hero-center" />
-
         <div className="hero-left">
           <h1>Littleloop</h1>
           <h2>One shirt. Three childhoods.</h2>
@@ -111,13 +89,10 @@ function LandingPage() {
       </section>
 
       <section className="mission">
-        <Leaf className="leaf-mission-right" />
-        <Leaf className="leaf-mission-bottom" />
-
         <h2>Our Mission</h2>
         <div className="mission-content">
           <img
-            src={Baby2}
+            src={Trash}
             alt="Families and community support"
             className="mission-img"
           />
