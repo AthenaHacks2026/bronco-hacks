@@ -187,7 +187,7 @@ function NeedsStep({ onboarding, setOnboarding }) {
       <header className="needs-header">
         <div className="needs-brand-wrap">
           <img src={logo} alt="LittleLoop logo" className="needs-logo-img" />
-          <span className="needs-brand-text">Logo Name</span>
+          <span className="needs-brand-text">LittleLoop</span>
         </div>
       </header>
 
