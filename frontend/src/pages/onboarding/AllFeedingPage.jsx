@@ -3,7 +3,6 @@ import CategoryItemsPage from './CategoryItemsPage'
 import Baby1 from '../../assets/Baby1.png'
 import Baby2 from '../../assets/Baby2.png'
 import Baby3 from '../../assets/Baby3.png'
-
 function AllFeedingPage() {
   return (
     <CategoryItemsPage

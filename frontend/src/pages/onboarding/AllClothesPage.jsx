@@ -3,7 +3,6 @@ import CategoryItemsPage from './CategoryItemsPage'
 import Baby1 from '../../assets/Baby1.png'
 import Baby2 from '../../assets/Baby2.png'
 import Baby3 from '../../assets/Baby3.png'
-
 function AllClothesPage() {
   return (
     <CategoryItemsPage
@@ -13,7 +12,6 @@ function AllClothesPage() {
         </>
       }
       pageTitle="All Clothes"
-      showRequestCard={false}
       items={[
         {
           id: 1,
@@ -53,7 +51,7 @@ function AllClothesPage() {
         },
         {
           id: 5,
-          title: 'Strawberry girl set',
+          title: 'Staawberry girl set',
           category: 'Clothes',
           donor: 'Julio121',
           location: 'San Dimas • 12 miles',
@@ -71,7 +69,7 @@ function AllClothesPage() {
         },
         {
           id: 7,
-          title: 'Strawberry girl set',
+          title: 'Staawberry girl set',
           category: 'Clothes',
           donor: 'Julio121',
           location: 'San Dimas • 12 miles',
@@ -80,7 +78,7 @@ function AllClothesPage() {
         },
         {
           id: 8,
-          title: 'Strawberry girl set',
+          title: 'Staawberry girl set',
           category: 'Clothes',
           donor: 'Julio121',
           location: 'San Dimas • 12 miles',
@@ -89,7 +87,7 @@ function AllClothesPage() {
         },
         {
           id: 9,
-          title: 'Strawberry girl set',
+          title: 'Staawberry girl set',
           category: 'Clothes',
           donor: 'Julio121',
           location: 'San Dimas • 12 miles',

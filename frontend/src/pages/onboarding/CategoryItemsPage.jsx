@@ -1,109 +1,79 @@
-import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './CategoryItemsPage.css'
 import websiteIcon from '../../assets/website-icon.png'
 
-function CategoryItemsPage({ breadcrumb, pageTitle, items }) {
+function CategoryItemsPage({ pageTitle, breadcrumb, items }) {
   const navigate = useNavigate()
-  const [searchTerm, setSearchTerm] = useState('')
-
-  const filteredItems = useMemo(() => {
-    const term = searchTerm.trim().toLowerCase()
-
-    if (!term) {
-      return items
-    }
-
-    return items.filter((item) => {
-      return (
-        item.title.toLowerCase().includes(term) ||
-        item.category.toLowerCase().includes(term) ||
-        item.donor.toLowerCase().includes(term) ||
-        item.location.toLowerCase().includes(term)
-      )
-    })
-  }, [items, searchTerm])
 
   return (
-    <main className="category-items-page">
-      <header className="category-items-header">
-        <img src={websiteIcon} alt="Website logo" className="header-logo" />
+    <main className="category-page">
+      <header className="category-header">
+        <img src={websiteIcon} alt="Website logo" className="category-logo" />
 
-        <div className="header-center">
-          <div className="search-location">
-            <span className="searching-label">Searching in</span>
-            <span className="searching-location">Pomona, 91768</span>
+        <div className="category-header-center">
+          <div className="category-search-location">
+            <span className="category-searching-label">Searching in</span>
+            <span className="category-searching-location">Pomona, 91768</span>
           </div>
 
-          <input
-            type="text"
-            className="search-bar"
-            placeholder="Search items..."
-            value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
-          />
+          <div className="category-search-bar">Search Bar</div>
         </div>
 
-        <img src={websiteIcon} alt="Website logo" className="header-logo" />
+        <img src={websiteIcon} alt="Website logo" className="category-logo" />
       </header>
 
-      <section className="category-items-content">
+      <section className="category-content">
         <p className="breadcrumb">{breadcrumb}</p>
-        <h1 className="category-page-title">{pageTitle}</h1>
+        <h1 className="category-title">{pageTitle}</h1>
 
-        {filteredItems.length > 0 ? (
-          <div className="category-items-grid">
-            {filteredItems.map((item) => (
-              <article className="category-item-card" key={item.id}>
-                <img
-                  src={item.image}
-                  alt={item.title}
-                  className="category-item-image"
-                />
+        <div className="items-grid">
+          {items.map((item) => (
+            <div key={item.id} className="item-card">
+              <img
+                src={item.image}
+                alt={item.title}
+                className="item-card-image"
+              />
 
-                <div className="category-item-details">
-                  <h2 className="category-item-title">{item.title}</h2>
+              <div className="item-card-content">
+                <h2 className="item-card-title">{item.title}</h2>
 
-                  <div className="category-meta">
-                    <div className="category-meta-row">
-                      <span>🏷</span>
-                      <span>{item.category}</span>
-                    </div>
+                <p className="item-meta">◻ {item.category}</p>
+                <p className="item-meta">♡ Donated by {item.donor}</p>
+                <p className="item-meta">⌖ {item.location}</p>
+                <p className="item-meta">◷ Posted {item.posted}</p>
 
-                    <div className="category-meta-row">
-                      <span>♡</span>
-                      <span>Donated by {item.donor}</span>
-                    </div>
+                <button type="button" className="request-item-button">
+                  Request Item <span>→</span>
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
 
-                    <div className="category-meta-row">
-                      <span>📍</span>
-                      <span>{item.location}</span>
-                    </div>
+        <div className="request-help-card">
+          <h3>Can't find what you need?</h3>
+          <p>Create a request and we'll notify you when someone donates it</p>
+          <button type="button" className="create-request-button">
+            Create a Request
+          </button>
+        </div>
 
-                    <div className="category-meta-row">
-                      <span>◷</span>
-                      <span>Posted {item.posted}</span>
-                    </div>
-                  </div>
-
-                  <button type="button" className="request-item-button">
-                    Request Item <span>→</span>
-                  </button>
-                </div>
-              </article>
-            ))}
-          </div>
-        ) : (
-          <p className="category-empty">No items found.</p>
-        )}
-
-        <div className="back-button-row">
+        <div className="category-actions">
           <button
             type="button"
-            className="back-button"
-            onClick={() => navigate(-1)}
+            className="back-page-button"
+            onClick={() => navigate('/onboarding/recommendations')}
           >
-            ← Back
+            Back
+          </button>
+
+          <button
+            type="button"
+            className="dashboard-button"
+            onClick={() => navigate('/dashboard')}
+          >
+            Go to Dashboard
           </button>
         </div>
       </section>
