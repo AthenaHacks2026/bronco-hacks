@@ -30,7 +30,6 @@ function App() {
   }
 
   const submitOnboarding = async () => {
-    const token = localStorage.getItem("token");
     const token = localStorage.getItem('token')
     const userId = localStorage.getItem('userId')
 
@@ -55,9 +54,7 @@ function App() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          onboarding,
-        }),
+        body: JSON.stringify({ onboarding }),
       })
 
       const rawText = await response.text()

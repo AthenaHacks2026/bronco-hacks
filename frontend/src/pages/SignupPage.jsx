@@ -11,6 +11,7 @@ function SignupPage({ resetOnboarding }) {
   })
 
   const [message, setMessage] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -19,6 +20,7 @@ function SignupPage({ resetOnboarding }) {
 
   const handleChange = (event) => {
     const { name, value } = event.target
+
     setForm((current) => ({
       ...current,
       [name]: value,
@@ -28,11 +30,27 @@ function SignupPage({ resetOnboarding }) {
   const handleSubmit = async (event) => {
     event.preventDefault()
 
+    if (!form.name.trim()) {
+      setMessage('Please enter your full name.')
+      return
+    }
+
+    if (!form.email.trim()) {
+      setMessage('Please enter your email address.')
+      return
+    }
+
+    if (form.password.length < 8) {
+      setMessage('Password must be at least 8 characters long.')
+      return
+    }
+
     if (form.password !== form.confirmPassword) {
       setMessage('Passwords do not match.')
       return
     }
 
+    setIsLoading(true)
     setMessage('Loading...')
 
     try {
@@ -42,26 +60,49 @@ function SignupPage({ resetOnboarding }) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: form.name,
-          email: form.email,
+          name: form.name.trim(),
+          email: form.email.trim(),
           password: form.password,
         }),
       })
 
-      const data = await response.json()
-      setMessage(data.message || `${response.status} ${response.statusText}`)
+      const rawText = await response.text()
+      let data = {}
+
+      try {
+        data = rawText ? JSON.parse(rawText) : {}
+      } catch {
+        data = {}
+      }
+
+      if (!response.ok) {
+        setMessage(data.message || `Signup failed: ${response.status} ${response.statusText}`)
+        return
+      }
+
+      setMessage(data.message || 'Account created successfully.')
 
       if (data.token) {
         localStorage.setItem('token', data.token)
-        if (data.user?.id) {
-          localStorage.setItem('userId', data.user.id)
-        }
-        setForm({ name: '', email: '', password: '' })
-        resetOnboarding()
-        navigate('/onboarding/user-type')
       }
+
+      if (data.user?.id) {
+        localStorage.setItem('userId', data.user.id)
+      }
+
+      setForm({
+        name: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+      })
+
+      resetOnboarding()
+      navigate('/onboarding/user-type')
     } catch (error) {
       setMessage(`Network error: ${error.message}`)
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -233,8 +274,8 @@ function SignupPage({ resetOnboarding }) {
               required
             />
 
-            <button type="submit" className="signup-button">
-              Create Account
+            <button type="submit" className="signup-button" disabled={isLoading}>
+              {isLoading ? 'Creating Account...' : 'Create Account'}
             </button>
           </form>
 
