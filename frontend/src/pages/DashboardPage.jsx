@@ -1,9 +1,12 @@
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
+import "./DashboardPage.css";
+
+import LogoIcon from "../assets/website-icon.png";
 
 const formatReasons = (reasons = []) => {
-  if (!reasons.length) return "Matched to your profile and recent onboarding info.";
+  if (!reasons.length) return "Matched to your profile and current stage.";
   return reasons
     .map((reason) => reason.charAt(0).toUpperCase() + reason.slice(1))
     .join(" • ");
@@ -17,23 +20,38 @@ function DashboardPage() {
   const [requestedClaims, setRequestedClaims] = useState([]);
   const [donorItems, setDonorItems] = useState([]);
   const [userType, setUserType] = useState("");
+  const [viewMode, setViewMode] = useState("caregiver");
   const [normalizedNeeds, setNormalizedNeeds] = useState([]);
   const [recommendedCategories, setRecommendedCategories] = useState([]);
   const [requestingIds, setRequestingIds] = useState([]);
   const [requestedItemIds, setRequestedItemIds] = useState([]);
   const [requestFeedback, setRequestFeedback] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [locationLabel, setLocationLabel] = useState("City, Zipcode");
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  const profileMenuRef = useRef(null);
 
   useEffect(() => {
-    const fetchRecommendations = async () => {
+    const handleClickOutside = (event) => {
+      if (
+        profileMenuRef.current &&
+        !profileMenuRef.current.contains(event.target)
+      ) {
+        setIsProfileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
       try {
         const token = localStorage.getItem("token");
-        if (!token) {
-          setLookingForItems([]);
-          setRecommendedItems([]);
-          setRequestedClaims([]);
-          setDonorItems([]);
-          return;
-        }
+        if (!token) return;
 
         const meRes = await axios.get("/api/users/me", {
           headers: {
@@ -41,18 +59,23 @@ function DashboardPage() {
           },
         });
 
-        const currentUserType = meRes.data?.user?.onboarding?.userType || "";
+        const user = meRes.data?.user || {};
+        setCurrentUser(user);
+
+        const currentUserType = user?.onboarding?.userType || "caregiver";
         setUserType(currentUserType);
+        setViewMode(currentUserType);
 
-        if (currentUserType === "donor") {
-          setLookingForItems([]);
-          setRecommendedItems([]);
-          setRequestedClaims([]);
-          setNormalizedNeeds([]);
-          setRecommendedCategories([]);
+        const city = user?.location?.city || user?.city || "";
+        const zip = user?.location?.zip || user?.zipCode || "";
+        const formattedLocation =
+          [city, zip].filter(Boolean).join(", ") || "City, Zipcode";
+        setLocationLabel(formattedLocation);
 
+        const currentUserId = String(user?._id || "");
+
+        try {
           const allItemsRes = await axios.get("/api/items");
-          const currentUserId = String(meRes.data?.user?._id || "");
           const ownedItems = (allItemsRes.data || []).filter((item) => {
             const donorId =
               item?.donorUserId ||
@@ -61,51 +84,73 @@ function DashboardPage() {
               item?.ownerId ||
               item?.createdByUserId ||
               item?.createdBy;
+
             return String(donorId || "") === currentUserId;
           });
+
           setDonorItems(ownedItems);
-          return;
+        } catch (err) {
+          console.error("Donor items fetch failed:", err);
+          setDonorItems([]);
         }
 
-        setDonorItems([]);
+        try {
+          const recRes = await axios.get("/api/recommendations", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
 
-        const res = await axios.get("/api/recommendations", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setNormalizedNeeds(res.data.normalizedNeeds || []);
-        setRecommendedCategories(res.data.recommended?.categories || []);
-        setLookingForItems(res.data.lookingFor?.items || []);
-        setRecommendedItems(res.data.recommended?.items || []);
+          setNormalizedNeeds(recRes.data?.normalizedNeeds || []);
+          setRecommendedCategories(recRes.data?.recommended?.categories || []);
+          setLookingForItems(recRes.data?.lookingFor?.items || []);
+          setRecommendedItems(recRes.data?.recommended?.items || []);
+        } catch (err) {
+          console.error("Recommendations fetch failed:", err);
+          setNormalizedNeeds([]);
+          setRecommendedCategories([]);
+          setLookingForItems([]);
+          setRecommendedItems([]);
+        }
 
-        const claimsRes = await axios.get("/api/claims/me", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const claims = claimsRes.data?.claims || [];
-        setRequestedClaims(claims);
-        setRequestedItemIds(
-          claims
-            .map((claim) => String(claim?.itemId?._id || claim?.itemId || ""))
-            .filter(Boolean)
-        );
+        try {
+          const claimsRes = await axios.get("/api/claims/me", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          const claims = claimsRes.data?.claims || [];
+          setRequestedClaims(claims);
+          setRequestedItemIds(
+            claims
+              .map((claim) => String(claim?.itemId?._id || claim?.itemId || ""))
+              .filter(Boolean)
+          );
+        } catch (err) {
+          console.error("Claims fetch failed:", err);
+          setRequestedClaims([]);
+          setRequestedItemIds([]);
+        }
       } catch (err) {
-        console.error("Recommendations fetch failed:", err);
-        setLookingForItems([]);
-        setRecommendedItems([]);
-        setRequestedClaims([]);
-        setDonorItems([]);
+        console.error("Dashboard fetch failed:", err);
       }
     };
 
-    fetchRecommendations();
+    fetchDashboardData();
   }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
   };
+
+  const isAlreadyRequested = (itemId) =>
+    requestedItemIds.includes(String(itemId)) ||
+    requestedClaims.some(
+      (claim) =>
+        String(claim?.itemId?._id || claim?.itemId) === String(itemId) &&
+        ["pending", "accepted", "completed"].includes(String(claim?.status || ""))
+    );
 
   const handleRequestItem = async (item) => {
     const token = localStorage.getItem("token");
@@ -119,6 +164,7 @@ function DashboardPage() {
 
     setRequestFeedback("");
     setRequestingIds((prev) => [...prev, item.id]);
+
     try {
       const createRes = await axios.post(
         "/api/claims",
@@ -143,279 +189,488 @@ function DashboardPage() {
             },
           }
         : null;
+
       if (optimisticClaim) {
         setRequestedItemIds((prev) =>
           prev.includes(String(item.id)) ? prev : [...prev, String(item.id)]
         );
+
         setRequestedClaims((prev) => [
           optimisticClaim,
           ...prev.filter((claim) => String(claim?._id) !== String(optimisticClaim._id)),
         ]);
       }
 
-      const claimsRes = await axios.get("/api/claims/me", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const refreshedClaims = claimsRes.data?.claims || [];
-      setRequestedClaims((prev) =>
-        refreshedClaims.length === 0 && optimisticClaim ? prev : refreshedClaims
-      );
-      if (refreshedClaims.length > 0) {
-        setRequestedItemIds(
-          refreshedClaims
-            .map((claim) => String(claim?.itemId?._id || claim?.itemId || ""))
-            .filter(Boolean)
-        );
-      }
       setRecommendedItems((prev) => prev.filter((candidate) => candidate.id !== item.id));
       setLookingForItems((prev) => prev.filter((candidate) => candidate.id !== item.id));
-      setRequestFeedback("Item successfully donated and added to your requested items.");
+      setRequestFeedback("Item requested successfully.");
     } catch (error) {
       if (error?.response?.status === 409) {
-        const conflictCode = String(error?.response?.data?.code || "");
-        const conflictMessage =
-          error?.response?.data?.message || "Request could not be completed.";
-
-        if (conflictCode === "ALREADY_REQUESTED") {
-          const existingClaim = error?.response?.data?.claim;
-          const fallbackClaimId = `existing-${String(item.id)}`;
-          const syntheticClaim = {
-            ...(existingClaim || {}),
-            _id: existingClaim?._id || fallbackClaimId,
-            status: existingClaim?.status || "completed",
-            itemId: {
-              _id: item.id,
-              title: item.title,
-              itemName: item.title,
-              text: item.description,
-              category: item.category,
-            },
-          };
-
-          setRequestedItemIds((prev) =>
-            prev.includes(String(item.id)) ? prev : [...prev, String(item.id)]
-          );
-          setRequestedClaims((prev) => [
-            syntheticClaim,
-            ...prev.filter(
-              (claim) =>
-                String(claim?._id) !== String(syntheticClaim._id) &&
-                String(claim?.itemId?._id || claim?.itemId) !== String(item.id)
-            ),
-          ]);
-          setRecommendedItems((prev) =>
-            prev.filter((candidate) => candidate.id !== item.id)
-          );
-          setLookingForItems((prev) =>
-            prev.filter((candidate) => candidate.id !== item.id)
-          );
-          setRequestFeedback("You already requested this item.");
-          return;
-        }
-
-        const claimsRes = await axios.get("/api/claims/me", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const refreshedClaims = claimsRes.data?.claims || [];
-        setRequestedClaims((prev) =>
-          refreshedClaims.length === 0 ? prev : refreshedClaims
+        setRequestFeedback(
+          error?.response?.data?.message || "You already requested this item."
         );
-        if (refreshedClaims.length > 0) {
-          setRequestedItemIds(
-            refreshedClaims
-              .map((claim) => String(claim?.itemId?._id || claim?.itemId || ""))
-              .filter(Boolean)
-          );
-        }
-        setRequestFeedback(conflictMessage);
-        return;
+      } else {
+        setRequestFeedback(
+          error?.response?.data?.message || "Failed to submit item request."
+        );
       }
-      setRequestFeedback(
-        error?.response?.data?.message || "Failed to submit item request."
-      );
     } finally {
       setRequestingIds((prev) => prev.filter((id) => id !== item.id));
     }
   };
 
-  const isAlreadyRequested = (itemId) =>
-    requestedItemIds.includes(String(itemId)) ||
-    requestedClaims.some(
-      (claim) =>
-        String(claim?.itemId?._id || claim?.itemId) === String(itemId) &&
-        ["pending", "accepted", "completed"].includes(
-          String(claim?.status || "")
-        )
+  const filteredLookingForItems = useMemo(() => {
+    if (!searchQuery.trim()) return lookingForItems;
+    const q = searchQuery.toLowerCase();
+    return lookingForItems.filter((item) =>
+      [item?.title, item?.description, item?.category]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes(q)
     );
+  }, [lookingForItems, searchQuery]);
+
+  const filteredRecommendedItems = useMemo(() => {
+    if (!searchQuery.trim()) return recommendedItems;
+    const q = searchQuery.toLowerCase();
+    return recommendedItems.filter((item) =>
+      [item?.title, item?.description, item?.category]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes(q)
+    );
+  }, [recommendedItems, searchQuery]);
+
+  const filteredDonorItems = useMemo(() => {
+    if (!searchQuery.trim()) return donorItems;
+    const q = searchQuery.toLowerCase();
+    return donorItems.filter((item) =>
+      [
+        item?.title,
+        item?.itemName,
+        item?.text,
+        item?.description,
+        item?.category,
+        item?.city,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes(q)
+    );
+  }, [donorItems, searchQuery]);
+
+  const fullName = [currentUser?.firstName, currentUser?.lastName]
+    .filter(Boolean)
+    .join(" ");
+  const username =
+    currentUser?.username || currentUser?.email?.split("@")?.[0] || "username";
 
   return (
-    <main className="page">
-      <div className="dashboard-top-actions">
-        <Link className="button-link" to="/settings">
-          Settings
-        </Link>
-        <Link className="button-link" to="/" onClick={handleLogout}>
-          Logout
-        </Link>
-      </div>
+    <main className="dashboard-page">
+      <header className="dashboard-navbar">
+        <div className="dashboard-logo-group">
+          <img src={LogoIcon} alt="Littleloop logo" className="dashboard-logo-icon" />
+        </div>
 
-      {userType !== "donor" && (
-        <>
-          <h2>What you're looking for</h2>
-          {normalizedNeeds.length === 0 ? (
-            <p>No need tags selected yet.</p>
-          ) : (
-            <p>Recommendations are based on your selected needs and stage.</p>
-          )}
+        <div className="dashboard-location">
+          <span className="dashboard-location-label">Searching in</span>
+          <strong>{locationLabel}</strong>
+        </div>
 
-          {lookingForItems.length === 0 ? (
-            <p>No direct matches yet.</p>
-          ) : (
-            <section className="recommendations-list">
-              {lookingForItems.map((item) => (
-                <article key={item.id} className="recommendation-card">
-                  <p className="recommendation-category">{item.category}</p>
-                  <h3>{item.title}</h3>
-                  <p>{item.description}</p>
-                  <p className="recommendation-why">
-                    Why this is recommended: {formatReasons(item.reasons)}
-                  </p>
-                  {userType === "caregiver" && (
-                    <button
-                      type="button"
-                      className="button-link"
-                      onClick={() => handleRequestItem(item)}
-                      disabled={
-                        requestingIds.includes(item.id) ||
-                        isAlreadyRequested(item.id)
-                      }
-                    >
-                      {requestingIds.includes(item.id)
-                        ? "Requesting..."
-                        : isAlreadyRequested(item.id)
-                          ? "Requested"
-                          : "Request Item"}
-                    </button>
-                  )}
-                </article>
-              ))}
-            </section>
-          )}
+        <div className="dashboard-search-wrap">
+          <input
+            type="text"
+            placeholder="Search for clothes, bottles, toys..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="dashboard-search"
+          />
+        </div>
 
-          <h2>What we recommend</h2>
-          {recommendedCategories.length > 0 && (
-            <p className="recommendation-helper-label">
-              Additional recommendations based on similar caregiver needs.
-            </p>
-          )}
+        <div className="dashboard-profile-wrap" ref={profileMenuRef}>
+          <button
+            type="button"
+            className="dashboard-profile-trigger"
+            onClick={() => setIsProfileMenuOpen((prev) => !prev)}
+            aria-label="Open profile menu"
+          >
+            {currentUser?.profileImage ? (
+              <img
+                src={currentUser.profileImage}
+                alt="Profile"
+                className="dashboard-profile-avatar-img"
+              />
+            ) : (
+              <div className="dashboard-profile-avatar" />
+            )}
+          </button>
 
-          {recommendedItems.length === 0 ? (
-            <p>No recommendations yet.</p>
-          ) : (
-            <section className="recommendations-list">
-              {recommendedItems.map((item) => (
-                <article key={item.id} className="recommendation-card">
-                  <p className="recommendation-category">{item.category}</p>
-                  <h3>{item.title}</h3>
-                  <p>{item.description}</p>
-                  <p className="recommendation-why">
-                    Why this is recommended: {formatReasons(item.reasons)}
-                  </p>
-                  {userType === "caregiver" && (
-                    <button
-                      type="button"
-                      className="button-link"
-                      onClick={() => handleRequestItem(item)}
-                      disabled={
-                        requestingIds.includes(item.id) ||
-                        isAlreadyRequested(item.id)
-                      }
-                    >
-                      {requestingIds.includes(item.id)
-                        ? "Requesting..."
-                        : isAlreadyRequested(item.id)
-                          ? "Requested"
-                          : "Request Item"}
-                    </button>
-                  )}
-                </article>
-              ))}
-            </section>
-          )}
+          {isProfileMenuOpen && (
+            <div className="dashboard-profile-menu">
+              <div className="dashboard-profile-menu-header">
+                {currentUser?.profileImage ? (
+                  <img
+                    src={currentUser.profileImage}
+                    alt="Profile"
+                    className="dashboard-profile-menu-avatar-img"
+                  />
+                ) : (
+                  <div className="dashboard-profile-menu-avatar" />
+                )}
 
-          {requestFeedback && <p>{requestFeedback}</p>}
-        </>
-      )}
+                <div className="dashboard-profile-menu-user">
+                  <strong>{username}</strong>
+                  <span>{fullName || "Full Name"}</span>
+                </div>
+              </div>
 
-      <div className="button-row">
-        {userType !== "caregiver" && (
-          <Link className="button-link" to="/upload">
-            Upload Item
-          </Link>
-        )}
-      </div>
+              <div className="dashboard-profile-divider" />
 
-      {userType === "caregiver" ? (
-        <section>
-          <h2>Requested Items</h2>
-          {requestedClaims.length === 0 ? (
-            <p>No requested items yet.</p>
-          ) : (
-            <section className="recommendations-list">
-              {requestedClaims.map((claim) => {
-                const requestedItem = claim.itemId || {};
-                const title =
-                  requestedItem.title ||
-                  requestedItem.itemName ||
-                  requestedItem.text ||
-                  "Requested item";
-                return (
-                  <article key={claim._id} className="recommendation-card">
-                    <p className="recommendation-category">
-                      {requestedItem.category || "Item"}
-                    </p>
-                    <h3>{title}</h3>
-                    <p>
-                      Request status:{" "}
-                      {String(claim.status || "pending").replace("_", " ")}
-                    </p>
-                  </article>
-                );
-              })}
-            </section>
-          )}
-        </section>
-      ) : (
-        <section>
-          <h2>Your Items</h2>
-          {donorItems.length === 0 ? (
-            <p>No items yet. Upload your first donation!</p>
-          ) : (
-            <section className="recommendations-list">
-              {donorItems.map((item) => (
-                <article
-                  key={String(item._id || item.id)}
-                  className="recommendation-card"
+              <div className="dashboard-profile-menu-links">
+                <Link
+                  to="/profile"
+                  className="dashboard-profile-menu-link"
+                  onClick={() => setIsProfileMenuOpen(false)}
                 >
-                  <p className="recommendation-category">{item.category || "Item"}</p>
-                  <h3>{item.title || item.itemName || item.text || "Donated item"}</h3>
-                  <p>{item.description || item.text || "No description provided."}</p>
-                  <p>
-                    {String(item.status || "") === "claimed"
-                      ? "Successfully donated."
-                      : "Waiting for caregiver request."}
-                  </p>
-                </article>
-              ))}
-            </section>
-          )}
-        </section>
-      )}
+                  <span className="menu-icon-square" />
+                  Profile
+                </Link>
 
+                <button
+                  type="button"
+                  className="dashboard-profile-menu-link menu-button"
+                  onClick={() => {
+                    setViewMode("donor");
+                    setIsProfileMenuOpen(false);
+                  }}
+                >
+                  <span className="menu-icon-square" />
+                  Donor Dashboard
+                </button>
+
+                <button
+                  type="button"
+                  className="dashboard-profile-menu-link menu-button"
+                  onClick={() => {
+                    setViewMode("caregiver");
+                    setIsProfileMenuOpen(false);
+                  }}
+                >
+                  <span className="menu-icon-square" />
+                  Caregiver Dashboard
+                </button>
+              </div>
+
+              <div className="dashboard-profile-divider" />
+
+              <div className="dashboard-profile-menu-links">
+                <Link
+                  to="/settings"
+                  className="dashboard-profile-menu-link"
+                  onClick={() => setIsProfileMenuOpen(false)}
+                >
+                  <span className="menu-icon-square" />
+                  Settings
+                </Link>
+
+                <Link
+                  to="/appearance"
+                  className="dashboard-profile-menu-link"
+                  onClick={() => setIsProfileMenuOpen(false)}
+                >
+                  <span className="menu-icon-square" />
+                  Appearance
+                </Link>
+              </div>
+
+              <div className="dashboard-profile-divider" />
+
+              <Link
+                to="/"
+                onClick={() => {
+                  handleLogout();
+                  setIsProfileMenuOpen(false);
+                }}
+                className="dashboard-profile-menu-link"
+              >
+                <span className="menu-icon-square" />
+                Sign Out
+              </Link>
+            </div>
+          )}
+        </div>
+      </header>
+
+      <section className="dashboard-content">
+        {viewMode === "donor" ? (
+          <>
+            <section className="donor-header-section">
+              <div className="donor-header-row">
+                <div className="donor-title-block">
+                  <h1>Your Donations</h1>
+                  <p className="dashboard-subtext">
+                    Items that are active or have been donated in the past.
+                  </p>
+                </div>
+
+                <Link to="/upload" className="dashboard-add-button" aria-label="Add donation">
+                  +
+                </Link>
+              </div>
+            </section>
+
+            {filteredDonorItems.length === 0 ? (
+              <section className="donor-empty-state">
+                <h3>No donations yet</h3>
+                <p>Upload your first item to start helping families in your area.</p>
+                <Link to="/upload" className="dashboard-primary-btn">
+                  Add Item
+                </Link>
+              </section>
+            ) : (
+              <section className="donor-cards-grid">
+                {filteredDonorItems.map((item) => (
+                  <article
+                    key={String(item._id || item.id)}
+                    className="donation-item-card"
+                  >
+                    <img
+                      src={
+                        item?.imageUrl ||
+                        item?.photoUrl ||
+                        item?.image ||
+                        "https://via.placeholder.com/180x140?text=Item"
+                      }
+                      alt={item?.title || "Donation"}
+                      className="donation-item-image"
+                    />
+
+                    <div className="donation-item-body">
+                      <h3>{item?.title || item?.itemName || item?.text || "Donated item"}</h3>
+
+                      <ul className="donation-item-meta">
+                        <li>{item?.category || "Category"}</li>
+                        <li>Donated by me</li>
+                        <li>{item?.city || "Pomona"}</li>
+                        <li>
+                          {item?.createdAt
+                            ? `Posted ${new Date(item.createdAt).toLocaleDateString()}`
+                            : "Posted recently"}
+                        </li>
+                      </ul>
+
+                      <button type="button" className="donation-item-action">
+                        View Item →
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </section>
+            )}
+          </>
+        ) : (
+          <>
+            <section className="caregiver-header-section">
+              <div className="caregiver-title-block">
+                <h1>Recommended for your stage</h1>
+                <p className="dashboard-subtext">
+                  Based on your current stage, we’ve selected categories and items
+                  that may be most helpful right now.
+                </p>
+              </div>
+            </section>
+
+            {searchQuery.trim() && (
+              <section className="dashboard-section">
+                <div className="section-heading-row">
+                  <h2>Search Results</h2>
+                  <span className="section-helper">Results for “{searchQuery}”</span>
+                </div>
+
+                {filteredLookingForItems.length === 0 ? (
+                  <p className="dashboard-empty-text">No direct matches found yet.</p>
+                ) : (
+                  <div className="dashboard-item-grid">
+                    {filteredLookingForItems.map((item) => (
+                      <article key={item.id} className="dashboard-item-card">
+                        <div className="dashboard-item-top">
+                          <span className="dashboard-item-category">{item.category}</span>
+                        </div>
+
+                        <h3>{item.title}</h3>
+                        <p>{item.description}</p>
+                        <p className="dashboard-item-why">{formatReasons(item.reasons)}</p>
+
+                        <button
+                          type="button"
+                          className="dashboard-secondary-btn"
+                          onClick={() => handleRequestItem(item)}
+                          disabled={
+                            requestingIds.includes(item.id) || isAlreadyRequested(item.id)
+                          }
+                        >
+                          {requestingIds.includes(item.id)
+                            ? "Requesting..."
+                            : isAlreadyRequested(item.id)
+                              ? "Requested"
+                              : "Request Item"}
+                        </button>
+                      </article>
+                    ))}
+                  </div>
+                )}
+              </section>
+            )}
+
+            <section className="dashboard-section">
+              <div className="section-heading-row">
+                <h2>Recommended Categories</h2>
+                <span className="section-helper">
+                  Tailored to your stage and caregiving needs
+                </span>
+              </div>
+
+              {recommendedCategories.length === 0 ? (
+                <p className="dashboard-empty-text">No categories yet.</p>
+              ) : (
+                <div className="category-card-grid">
+                  {recommendedCategories.map((category, index) => {
+                    const previewItems = recommendedItems
+                      .filter(
+                        (item) =>
+                          String(item?.category || "").toLowerCase() ===
+                          String(category || "").toLowerCase()
+                      )
+                      .slice(0, 4);
+
+                    return (
+                      <article key={`${category}-${index}`} className="category-preview-card">
+                        <div className="category-preview-header">
+                          <div className="category-preview-icon">⬡</div>
+                          <h3>{category}</h3>
+                        </div>
+
+                        <div className="category-preview-grid">
+                          {previewItems.length > 0 ? (
+                            previewItems.map((item) => (
+                              <div key={item.id} className="category-preview-tile">
+                                {item.title}
+                              </div>
+                            ))
+                          ) : (
+                            <>
+                              <div className="category-preview-tile muted">Suggested item</div>
+                              <div className="category-preview-tile muted">Suggested item</div>
+                              <div className="category-preview-tile muted">Suggested item</div>
+                              <div className="category-preview-tile muted">Suggested item</div>
+                            </>
+                          )}
+                        </div>
+
+                        <button type="button" className="category-view-btn">
+                          View Items →
+                        </button>
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+
+            <section className="dashboard-section">
+              <div className="section-heading-row">
+                <h2>Additional Recommendations</h2>
+                <span className="section-helper">
+                  What other caregivers in similar situations found useful
+                </span>
+              </div>
+
+              {filteredRecommendedItems.length === 0 ? (
+                <p className="dashboard-empty-text">No recommendations yet.</p>
+              ) : (
+                <div className="dashboard-item-grid">
+                  {filteredRecommendedItems.map((item) => (
+                    <article key={item.id} className="dashboard-item-card">
+                      <div className="dashboard-item-top">
+                        <span className="dashboard-item-category">{item.category}</span>
+                      </div>
+
+                      <h3>{item.title}</h3>
+                      <p>{item.description}</p>
+                      <p className="dashboard-item-why">{formatReasons(item.reasons)}</p>
+
+                      <button
+                        type="button"
+                        className="dashboard-secondary-btn"
+                        onClick={() => handleRequestItem(item)}
+                        disabled={
+                          requestingIds.includes(item.id) || isAlreadyRequested(item.id)
+                        }
+                      >
+                        {requestingIds.includes(item.id)
+                          ? "Requesting..."
+                          : isAlreadyRequested(item.id)
+                            ? "Requested"
+                            : "Request Item"}
+                      </button>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </section>
+
+            <section className="dashboard-request-box">
+              <h3>Can’t find what you need?</h3>
+              <p>Create a request and we’ll notify you when someone donates it.</p>
+              <Link to="/request" className="dashboard-primary-btn">
+                Create a Request
+              </Link>
+            </section>
+
+            {requestFeedback && <p className="dashboard-feedback">{requestFeedback}</p>}
+
+            <section className="dashboard-section">
+              <div className="section-heading-row">
+                <h2>Requested Items</h2>
+              </div>
+
+              {requestedClaims.length === 0 ? (
+                <p className="dashboard-empty-text">No requested items yet.</p>
+              ) : (
+                <div className="dashboard-item-grid">
+                  {requestedClaims.map((claim) => {
+                    const requestedItem = claim.itemId || {};
+                    const title =
+                      requestedItem.title ||
+                      requestedItem.itemName ||
+                      requestedItem.text ||
+                      "Requested item";
+
+                    return (
+                      <article key={claim._id} className="dashboard-item-card">
+                        <div className="dashboard-item-top">
+                          <span className="dashboard-item-category">
+                            {requestedItem.category || "Item"}
+                          </span>
+                        </div>
+
+                        <h3>{title}</h3>
+                        <p>
+                          Request status:{" "}
+                          {String(claim.status || "pending").replace("_", " ")}
+                        </p>
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          </>
+        )}
+      </section>
     </main>
   );
 }
