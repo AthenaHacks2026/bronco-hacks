@@ -1,263 +1,472 @@
-:root {
-  --outer-bg: #71776d;
-  --page-bg: #efede4;
-  --card-bg: #fbfaf6;
-  --input-bg: #f4f4f1;
-  --text: #1f211d;
-  --muted: #72756d;
-  --sage: #98b287;
-  --sage-dark: #7d9a70;
-  --chip-bg: #f0f1ec;
-  --border: #e4e1d7;
-  --shadow: 0 10px 30px rgba(70, 76, 66, 0.08);
-}
+@import url("https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@300;400;500;700;800&family=Fira+Sans:wght@700;900&display=swap");
 
 * {
   box-sizing: border-box;
 }
 
-body {
+html,
+body,
+#root {
   margin: 0;
-  font-family: Arial, sans-serif;
-  background: var(--outer-bg);
-  color: var(--text);
+  width: 100%;
+  min-height: 100%;
 }
 
-.category-items-page {
-  max-width: 980px;
-  min-height: calc(100vh - 32px);
-  margin: 16px auto;
-  padding: 18px 28px 40px;
-  background: var(--page-bg);
+body {
+  background: #fdfaf1;
 }
 
-.category-items-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 42px;
-}
-
-.header-logo {
-  width: 52px;
-  height: 52px;
-  object-fit: contain;
-  margin-top: 4px;
-}
-
-.header-center {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 28px;
-}
-
-.search-location {
+.caregiver-page {
+  min-height: 100vh;
+  background: #fdfaf1;
   display: flex;
   flex-direction: column;
-  line-height: 1.2;
-  min-width: 130px;
+  overflow: hidden;
 }
 
-.searching-label {
-  font-size: 0.95rem;
-  font-weight: 400;
-  color: var(--text);
-}
-
-.searching-location {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--text);
-}
-
-.search-bar {
-  flex: 1;
-  max-width: 480px;
-  height: 42px;
-  border: 2px solid var(--sage);
-  border-radius: 999px;
-  background: transparent;
-  padding: 0 18px;
-  font-size: 0.95rem;
-  color: var(--text);
-  outline: none;
-}
-
-.search-bar::placeholder {
-  color: #4f5548;
-}
-
-.search-bar:focus {
-  border-color: var(--sage-dark);
-  box-shadow: 0 0 0 4px rgba(152, 178, 135, 0.16);
-  background: #ffffff;
-}
-
-.category-items-content {
-  max-width: 860px;
-  margin: 0 auto;
-}
-
-.breadcrumb {
-  margin: 0 0 14px;
-  font-size: 1rem;
-  color: #373a34;
-}
-
-.breadcrumb strong {
-  font-weight: 800;
-}
-
-.category-page-title {
-  margin: 0 0 18px;
-  font-size: 3rem;
-  line-height: 1;
-  letter-spacing: -0.04em;
-  font-weight: 900;
-  color: var(--text);
-}
-
-.category-items-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-}
-
-.category-item-card {
-  background: var(--card-bg);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 12px;
-  box-shadow: var(--shadow);
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  min-height: 156px;
-}
-
-.category-item-image {
-  width: 92px;
-  height: 92px;
-  object-fit: cover;
-  border-radius: 8px;
-  background: #ececec;
+.caregiver-header {
+  width: 100%;
+  padding: 18px 34px 0;
   flex-shrink: 0;
 }
 
-.category-item-details {
+.caregiver-brand-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.caregiver-logo-img {
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+}
+
+.caregiver-brand-text {
+  color: #87b387;
+  font-family: "Fira Sans", sans-serif;
+  font-size: 54px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.caregiver-content {
   flex: 1;
-  min-width: 0;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0px 24px 16px;
+  margin-top: -95px; /* 👈 THIS is the key push up */
 }
 
-.category-item-title {
-  margin: 0 0 10px;
-  font-size: 0.98rem;
-  font-weight: 800;
-  line-height: 1.25;
-  color: var(--text);
-}
-
-.category-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.category-meta-row {
+.progress-container {
   display: flex;
   align-items: center;
-  gap: 7px;
-  font-size: 0.82rem;
-  color: var(--muted);
-  line-height: 1.25;
+  gap: 12px;
+  margin-top: 8px;
+  margin-bottom: 24px;
 }
 
-.request-item-button {
-  margin-top: auto;
-  align-self: flex-start;
-  border: none;
+.progress-step {
+  width: 72px;
+  height: 72px;
+  border-radius: 999px;
+  border: 3px solid #dd8c93;
   background: transparent;
-  padding: 0;
-  font-size: 0.92rem;
-  font-weight: 700;
-  color: var(--text);
-  cursor: pointer;
-  display: inline-flex;
+  color: #dd8c93;
+  display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  font-family: "Fira Sans", sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
 }
 
-.request-item-button:hover {
-  color: var(--sage-dark);
+.progress-step.active {
+  background: #dd8c93;
+  color: #fff;
+  border: none;
 }
 
-.category-empty {
-  margin-top: 24px;
+.progress-line {
+  width: 76px;
+  height: 8px;
+  border-radius: 999px;
+  background: #dd8c93;
+}
+
+.caregiver-title {
+  margin: 0 0 10px;
+  color: #000;
   text-align: center;
-  color: var(--muted);
-  font-size: 1rem;
+  font-family: "Fira Sans", sans-serif;
+  font-size: 54px;
+  font-weight: 900;
+  line-height: 1.02;
 }
 
-.back-button-row {
-  margin-top: 32px;
+.caregiver-subtitle {
+  margin: 0 0 26px;
+  color: #5e5e5e;
+  text-align: center;
+  font-family: "Alegreya Sans", sans-serif;
+  font-size: 27px;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.caregiver-cards {
+  width: 100%;
+  max-width: 1120px;
   display: flex;
   justify-content: center;
+  align-items: stretch;
+  gap: 26px;
+  margin-bottom: 26px;
 }
 
-.back-button {
-  display: inline-flex;
+.caregiver-card {
+  position: relative;
+  width: 330px;
+  min-height: 410px;
+  padding: 28px 24px 24px;
+  border-radius: 6px;
+  border: 2px solid #dd8c93;
+  background: #fdfaf1;
+  display: flex;
   align-items: center;
   justify-content: center;
-  padding: 12px 24px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.caregiver-card:hover {
+  transform: translateY(-2px);
+}
+
+.caregiver-card.selected {
+  background: rgba(221, 140, 147, 0.1);
+  box-shadow: 0 10px 24px rgba(221, 140, 147, 0.18);
+}
+
+.caregiver-check {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  color: #333;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.caregiver-card-inner {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.caregiver-icon-circle {
+  width: 76px;
+  height: 76px;
+  border-radius: 999px;
+  background: #dd8c93;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 28px;
+}
+
+.caregiver-icon-svg {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
+.caregiver-icon-svg path {
+  stroke: #fdfaf1;
+  stroke-width: 2.667px;
+}
+
+.caregiver-card-text {
+  width: 100%;
+  text-align: center;
+}
+
+.caregiver-card-text h3 {
+  margin: 0 0 14px;
+  color: #000;
+  font-family: "Alegreya Sans", sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.caregiver-card-text p {
+  margin: 0;
+  color: #555;
+  font-family: "Alegreya Sans", sans-serif;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.55;
+}
+
+.caregiver-button-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+  margin-top: 0;
+}
+
+.caregiver-back-button,
+.caregiver-continue-button {
+  width: 210px;
+  height: 68px;
   border: none;
   border-radius: 999px;
-  background: #d9dfd2;
-  color: #293026;
-  font-weight: 700;
-  font-size: 0.95rem;
+  font-family: "Alegreya Sans", sans-serif;
+  font-size: 22px;
+  font-weight: 500;
   cursor: pointer;
-  transition: 0.2s ease;
+  transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
-.back-button:hover {
-  background: #ccd5c3;
+.caregiver-back-button {
+  background: #ded7c5;
+  color: #232323;
+}
+
+.caregiver-continue-button {
+  background: #e8b3b8;
+  color: #fff;
+}
+
+.caregiver-continue-button:not(:disabled) {
+  background: #dd8c93;
+}
+
+.caregiver-back-button:hover,
+.caregiver-continue-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  opacity: 0.96;
+}
+
+.caregiver-continue-button:disabled {
+  opacity: 1;
+  cursor: not-allowed;
+}
+
+@media (max-width: 1400px) {
+  .caregiver-brand-text {
+    font-size: 46px;
+  }
+
+  .progress-step {
+    width: 64px;
+    height: 64px;
+    font-size: 25px;
+  }
+
+  .progress-line {
+    width: 64px;
+  }
+
+  .caregiver-title {
+    font-size: 46px;
+  }
+
+  .caregiver-subtitle {
+    font-size: 24px;
+  }
+
+  .caregiver-card {
+    width: 300px;
+    min-height: 385px;
+  }
+
+  .caregiver-card-text h3 {
+    font-size: 25px;
+  }
+
+  .caregiver-card-text p {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .caregiver-page {
+    overflow: visible;
+  }
+
+  .caregiver-header {
+    padding: 16px 20px 0;
+  }
+
+  .caregiver-logo-img {
+    width: 50px;
+    height: 50px;
+  }
+
+  .caregiver-brand-text {
+    font-size: 40px;
+  }
+
+  .caregiver-content {
+    padding: 12px 20px 28px;
+  }
+
+  .progress-container {
+    margin-bottom: 18px;
+  }
+
+  .progress-step {
+    width: 56px;
+    height: 56px;
+    font-size: 22px;
+  }
+
+  .progress-line {
+    width: 50px;
+    height: 6px;
+  }
+
+  .caregiver-title {
+    font-size: 40px;
+  }
+
+  .caregiver-subtitle {
+    font-size: 22px;
+    margin-bottom: 20px;
+  }
+
+  .caregiver-cards {
+    gap: 18px;
+  }
+
+  .caregiver-card {
+    width: 280px;
+    min-height: 360px;
+    padding: 24px 20px;
+  }
+
+  .caregiver-icon-circle {
+    width: 68px;
+    height: 68px;
+    margin-bottom: 22px;
+  }
+
+  .caregiver-card-text h3 {
+    font-size: 24px;
+  }
+
+  .caregiver-card-text p {
+    font-size: 18px;
+  }
+
+  .caregiver-back-button,
+  .caregiver-continue-button {
+    width: 190px;
+    height: 62px;
+    font-size: 21px;
+  }
 }
 
 @media (max-width: 900px) {
-  .category-items-page {
-    margin: 0;
+  .caregiver-page {
     min-height: 100vh;
-    padding: 16px;
+    overflow: visible;
   }
 
-  .category-items-header {
+  .caregiver-header {
+    padding: 16px 16px 0;
+  }
+
+  .caregiver-logo-img {
+    width: 44px;
+    height: 44px;
+  }
+
+  .caregiver-brand-text {
+    font-size: 34px;
+  }
+
+  .caregiver-content {
+    padding: 16px 16px 26px;
+  }
+
+  .progress-container {
+    gap: 10px;
+    margin-top: 4px;
+    margin-bottom: 16px;
+  }
+
+  .progress-step {
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+  }
+
+  .progress-line {
+    width: 36px;
+    height: 5px;
+  }
+
+  .caregiver-title {
+    font-size: 34px;
+  }
+
+  .caregiver-subtitle {
+    font-size: 20px;
+    margin-bottom: 16px;
+  }
+
+  .caregiver-cards {
     flex-direction: column;
     align-items: center;
-    gap: 16px;
+    max-width: 100%;
+    gap: 14px;
+    margin-bottom: 20px;
   }
 
-  .header-center {
+  .caregiver-card {
+    width: 100%;
+    max-width: 340px;
+    min-height: auto;
+    padding: 22px 18px;
+  }
+
+  .caregiver-icon-circle {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 18px;
+  }
+
+  .caregiver-icon-svg {
+    width: 30px;
+    height: 30px;
+  }
+
+  .caregiver-card-text h3 {
+    font-size: 22px;
+  }
+
+  .caregiver-card-text p {
+    font-size: 17px;
+  }
+
+  .caregiver-button-row {
     width: 100%;
     flex-direction: column;
-    gap: 14px;
+    gap: 12px;
   }
 
-  .search-bar {
+  .caregiver-back-button,
+  .caregiver-continue-button {
     width: 100%;
-    max-width: 100%;
-  }
-
-  .category-page-title {
-    font-size: 2.2rem;
-  }
-
-  .category-items-grid {
-    grid-template-columns: 1fr;
+    max-width: 340px;
+    height: 58px;
+    font-size: 20px;
   }
 }

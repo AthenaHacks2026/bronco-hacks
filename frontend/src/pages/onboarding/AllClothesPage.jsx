@@ -1,10 +1,5 @@
 import CategoryItemsPage from './CategoryItemsPage'
 
-import image1 from '../../assets/image1.png'
-import image2 from '../../assets/image2.png'
-import image3 from '../../assets/image3.png'
-import image4 from '../../assets/image4.png'
-
 function AllClothesPage() {
   return (
     <CategoryItemsPage
@@ -14,7 +9,6 @@ function AllClothesPage() {
         </>
       }
       pageTitle="All Clothes"
-      showRequestCard={false}
       items={[
         {
           id: 1,
@@ -23,7 +17,7 @@ function AllClothesPage() {
           donor: 'Jessica41',
           location: 'Pomona • 6 miles',
           posted: '5 days ago',
-          image: image1,
+          image: '/images/clothes1.jpg',
         },
         {
           id: 2,
@@ -32,7 +26,7 @@ function AllClothesPage() {
           donor: 'naolily',
           location: 'Chino Hills • 12 miles',
           posted: '1 week ago',
-          image: image2,
+          image: '/images/clothes2.jpg',
         },
         {
           id: 3,
@@ -41,7 +35,7 @@ function AllClothesPage() {
           donor: 'Jessica41',
           location: 'Pomona • 6 miles',
           posted: '5 days ago',
-          image: image1,
+          image: '/images/clothes1.jpg',
         },
         {
           id: 4,
@@ -50,16 +44,16 @@ function AllClothesPage() {
           donor: 'naolily',
           location: 'Chino Hills • 12 miles',
           posted: '1 week ago',
-          image: image2,
+          image: '/images/clothes2.jpg',
         },
         {
           id: 5,
-          title: 'Strawberry girl set',
+          title: 'Staawberry girl set',
           category: 'Clothes',
           donor: 'Julio121',
           location: 'San Dimas • 12 miles',
           posted: '1 week ago',
-          image: image3,
+          image: '/images/clothes3.jpg',
         },
         {
           id: 6,
@@ -68,34 +62,34 @@ function AllClothesPage() {
           donor: 'aaamber1',
           location: 'San Dimas • 13 miles',
           posted: '3 days ago',
-          image: image4,
+          image: '/images/clothes4.jpg',
         },
         {
           id: 7,
-          title: 'Strawberry girl set',
+          title: 'Staawberry girl set',
           category: 'Clothes',
           donor: 'Julio121',
           location: 'San Dimas • 12 miles',
           posted: '1 week ago',
-          image: image3,
+          image: '/images/clothes3.jpg',
         },
         {
           id: 8,
-          title: 'Strawberry girl set',
+          title: 'Staawberry girl set',
           category: 'Clothes',
           donor: 'Julio121',
           location: 'San Dimas • 12 miles',
           posted: '1 week ago',
-          image: image3,
+          image: '/images/clothes3.jpg',
         },
         {
           id: 9,
-          title: 'Strawberry girl set',
+          title: 'Staawberry girl set',
           category: 'Clothes',
           donor: 'Julio121',
           location: 'San Dimas • 12 miles',
           posted: '1 week ago',
-          image: image3,
+          image: '/images/clothes3.jpg',
         },
       ]}
     />
