@@ -1,6 +1,8 @@
 const express = require("express");
 const multer = require("multer");
 const axios = require("axios");
+const { randomUUID } = require("crypto");
+const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const Item = require("../models/Item");
 const { GoogleGenAI } = require("@google/genai");
 const requireAuth = require("../middleware/requireAuth");
@@ -12,6 +14,55 @@ const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
 });
 const modelName = process.env.GEMINI_MODEL || "gemini-2.0-flash";
+const s3Bucket = process.env.S3_BUCKET_NAME;
+const s3Region = process.env.AWS_REGION;
+const s3PublicBaseUrl = process.env.S3_PUBLIC_BASE_URL || "";
+const enableS3Upload = Boolean(s3Bucket && s3Region);
+
+const s3Client = enableS3Upload
+  ? new S3Client({
+      region: s3Region,
+      credentials:
+        process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY
+          ? {
+              accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+              secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+            }
+          : undefined,
+    })
+  : null;
+
+function getPublicImageUrl(key) {
+  if (s3PublicBaseUrl) {
+    return `${s3PublicBaseUrl.replace(/\/+$/, "")}/${key}`;
+  }
+  return `https://${s3Bucket}.s3.${s3Region}.amazonaws.com/${key}`;
+}
+
+async function uploadImageToS3(file, userId) {
+  if (!enableS3Upload || !s3Client) {
+    throw new Error(
+      "S3 upload is not configured. Set S3_BUCKET_NAME and AWS_REGION."
+    );
+  }
+
+  const extension = file.originalname?.includes(".")
+    ? file.originalname.split(".").pop().toLowerCase()
+    : "jpg";
+  const key = `items/${userId}/${Date.now()}-${randomUUID()}.${extension}`;
+
+  await s3Client.send(
+    new PutObjectCommand({
+      Bucket: s3Bucket,
+      Key: key,
+      Body: file.buffer,
+      ContentType: file.mimetype,
+      CacheControl: "public, max-age=31536000",
+    })
+  );
+
+  return getPublicImageUrl(key);
+}
 
 function safeParseModelJson(rawText) {
   try {
@@ -291,6 +342,16 @@ router.post("/analyze-image", requireAuth, upload.single("image"), async (req, r
     const condition = req.body.condition || "";
     const brand = String(req.body.brand || "").trim();
     const year = String(req.body.year || "").trim();
+    let uploadedImageUrl = "";
+    try {
+      uploadedImageUrl = await uploadImageToS3(req.file, req.userId);
+    } catch (s3Error) {
+      return res.status(502).json({
+        error: "Failed to upload image to S3.",
+        details: s3Error.message,
+        s3ErrorCode: s3Error.name || "S3UploadError",
+      });
+    }
 
     if (!brand || !year) {
       return res.status(400).json({ error: "Brand and year are required." });
@@ -363,6 +424,9 @@ Important:
       needsReview: parsed.needs_review,
       reviewReason: parsed.review_reason,
       confidence: parsed.confidence,
+      images: uploadedImageUrl ? [uploadedImageUrl] : [],
+      image: uploadedImageUrl || "",
+      imageUrl: uploadedImageUrl || "",
       recall: {
         recallStatus: recall.recall_status,
         recallCount: recall.recall_count,
@@ -377,6 +441,7 @@ Important:
     return res.status(200).json({
       declared_brand: brand,
       declared_year: year,
+      uploadedImageUrl,
       ...parsed,
       recall,
       ...decision,

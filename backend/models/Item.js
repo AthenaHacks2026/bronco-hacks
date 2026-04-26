@@ -42,6 +42,14 @@ const itemSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    image: {
+      type: String,
+      default: "",
+    },
+    imageUrl: {
+      type: String,
+      default: "",
+    },
     status: {
       type: String,
       enum: ["available", "reserved", "claimed", "removed"],

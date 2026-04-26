@@ -56,8 +56,11 @@ function UploadPage() {
       const data = rawText ? JSON.parse(rawText) : {};
 
       if (!response.ok) {
+        const errorMessage = [data.error || data.message, data.details]
+          .filter(Boolean)
+          .join(" ");
         setResult({
-          error: data.error || data.message || "Failed to upload item.",
+          error: errorMessage || "Failed to upload item.",
         });
       } else {
         setResult(data);

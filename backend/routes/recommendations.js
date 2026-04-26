@@ -84,11 +84,18 @@ function applySnapshotToPayload(basePayload, snapshot) {
 }
 
 function normalizeDbItem(item) {
+  const image =
+    item?.imageUrl ||
+    item?.photoUrl ||
+    item?.image ||
+    (Array.isArray(item?.images) && item.images.length > 0 ? item.images[0] : "");
+
   return {
     id: String(item._id),
     title: item.title || item.itemName || item.text || "Donated item",
     category: item.category || "Gear",
     description: item.description || item.text || "",
+    image,
     condition: item.condition || "used-good",
     minAgeMonths: Number.isFinite(item.minAgeMonths) ? item.minAgeMonths : 0,
     maxAgeMonths: Number.isFinite(item.maxAgeMonths) ? item.maxAgeMonths : 999,

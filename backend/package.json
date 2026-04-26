@@ -6,9 +6,11 @@
   "scripts": {
     "dev": "node --watch server.js",
     "start": "node server.js",
-    "backfill:onboarding": "node backfillOnboarding.js"
+    "backfill:onboarding": "node backfillOnboarding.js",
+    "backfill:item-images": "node backfillItemImages.js"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1037.0",
     "@google/genai": "^1.50.1",
     "axios": "^1.15.2",
     "bcryptjs": "^3.0.3",
