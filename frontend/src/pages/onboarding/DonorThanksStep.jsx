@@ -1,37 +1,44 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import '../../styles/DonorThanksStep.css'
 
-function DonorThanksStep({ submitOnboarding }) {
+function DonorThanksStep() {
   const navigate = useNavigate()
-  const [isSaving, setIsSaving] = useState(false)
-  const [message, setMessage] = useState('')
-
-  const handleContinue = async () => {
-    if (isSaving) return
-    setIsSaving(true)
-    setMessage('')
-    const result = await submitOnboarding()
-    if (result.ok) {
-      navigate('/dashboard')
-    } else {
-      setMessage(result.message || 'Failed to save onboarding.')
-    }
-    setIsSaving(false)
-  }
 
   return (
-    <main className="page">
-      <h1>Thank You</h1>
-      <p>We are grateful you are taking the time to donate and support families in need. Continue to the dashboard to make your first donation!</p>
-      {message && <p>{message}</p>}
-      <div className="button-row">
-        <button type="button" onClick={() => navigate('/onboarding/donor-info')}>
-          Back
-        </button>
-        <button type="button" onClick={handleContinue} disabled={isSaving}>
-          {isSaving ? 'Saving...' : 'Continue'}
-        </button>
-      </div>
+    <main className="thanks-page">
+      <div className="thanks-logo">LittleLoop</div>
+
+      <section className="thanks-container">
+        <div className="thanks-card">
+          <h1 className="thanks-title">Thank You</h1>
+
+          <p className="thanks-text">
+            We appreciate you taking the time to donate and support families in need.
+          </p>
+
+          <p className="thanks-subtext">
+            Continue to the dashboard to make your first donation.
+          </p>
+
+          <div className="thanks-actions">
+            <button
+              type="button"
+              className="thanks-back"
+              onClick={() => navigate('/onboarding/donor-info')}
+            >
+              Back
+            </button>
+
+            <button
+              type="button"
+              className="thanks-continue"
+              onClick={() => navigate('/dashboard')}
+            >
+              Continue →
+            </button>
+          </div>
+        </div>
+      </section>
     </main>
   )
 }
