@@ -40,7 +40,7 @@ function CaregiverInfoStep({ onboarding, setOnboarding }) {
       </header>
 
       <section className="caregiver-content">
-        <div className="caregiver-progress">
+        <div className="progress-container">
           <div className="progress-step active">1</div>
           <div className="progress-line" />
           <div className="progress-step">2</div>
@@ -84,7 +84,7 @@ function CaregiverInfoStep({ onboarding, setOnboarding }) {
               </div>
 
               <div className="caregiver-card-text">
-                <h3>I&apos;m a Caregiver</h3>
+                <h3>Pregnant</h3>
                 <p>
                   I&apos;m pregnant, postpartum, or caring for a child and need
                   support finding essential items for my family.
