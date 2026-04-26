@@ -1,6 +1,6 @@
 const express = require("express");
 const User = require("../models/User");
-const requireAuth = require("../middleware/auth");
+const requireAuth = require("../middleware/requireAuth");
 
 const router = express.Router();
 
@@ -31,9 +31,10 @@ router.get("/me", requireAuth, async (req, res) => {
 
     return res.status(200).json({ user });
   } catch (error) {
-    return res
-      .status(500)
-      .json({ message: "Failed to fetch user profile.", error: error.message });
+    return res.status(500).json({
+      message: "Failed to fetch user profile.",
+      error: error.message,
+    });
   }
 });
 
@@ -55,6 +56,7 @@ router.put("/me", requireAuth, async (req, res) => {
 
     if (email !== undefined) {
       const normalizedEmail = String(email).trim().toLowerCase();
+
       if (!normalizedEmail) {
         return res.status(400).json({ message: "Email cannot be empty." });
       }
@@ -63,6 +65,7 @@ router.put("/me", requireAuth, async (req, res) => {
         email: normalizedEmail,
         _id: { $ne: user._id },
       });
+
       if (existingUser) {
         return res.status(409).json({ message: "Email is already in use." });
       }
@@ -72,8 +75,9 @@ router.put("/me", requireAuth, async (req, res) => {
 
     if (onboarding && typeof onboarding === "object") {
       const normalizedOnboarding = normalizeOnboardingPayload(onboarding);
+
       user.onboarding = {
-        ...user.onboarding?.toObject?.(),
+        ...(user.onboarding?.toObject?.() || user.onboarding || {}),
         ...normalizedOnboarding,
       };
     }
@@ -89,9 +93,10 @@ router.put("/me", requireAuth, async (req, res) => {
       user: updatedUser,
     });
   } catch (error) {
-    return res
-      .status(500)
-      .json({ message: "Failed to update user profile.", error: error.message });
+    return res.status(500).json({
+      message: "Failed to update user profile.",
+      error: error.message,
+    });
   }
 });
 
@@ -100,7 +105,9 @@ router.put("/onboarding", requireAuth, async (req, res) => {
     const onboardingPayload = req.body.onboarding;
 
     if (!onboardingPayload || typeof onboardingPayload !== "object") {
-      return res.status(400).json({ message: "onboarding payload is required." });
+      return res.status(400).json({
+        message: "Onboarding data is required.",
+      });
     }
 
     const user = await User.findById(req.userId);
@@ -109,8 +116,9 @@ router.put("/onboarding", requireAuth, async (req, res) => {
     }
 
     const normalizedOnboarding = normalizeOnboardingPayload(onboardingPayload);
+
     user.onboarding = {
-      ...user.onboarding?.toObject?.(),
+      ...(user.onboarding?.toObject?.() || user.onboarding || {}),
       ...normalizedOnboarding,
       completedAt: new Date(),
     };
@@ -122,9 +130,11 @@ router.put("/onboarding", requireAuth, async (req, res) => {
       onboarding: user.onboarding,
     });
   } catch (error) {
-    return res
-      .status(500)
-      .json({ message: "Failed to save onboarding.", error: error.message });
+    console.error("Onboarding error:", error);
+    return res.status(500).json({
+      message: "Failed to save onboarding.",
+      error: error.message,
+    });
   }
 });
 

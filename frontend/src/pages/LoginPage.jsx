@@ -27,6 +27,9 @@ function LoginPage() {
 
       if (data.token) {
         localStorage.setItem('token', data.token)
+        if (data.user?.id) {
+          localStorage.setItem('userId', data.user.id)
+        }
         navigate('/dashboard')
       }
     } catch (error) {

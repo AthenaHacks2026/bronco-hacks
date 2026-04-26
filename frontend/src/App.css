@@ -1,65 +1,98 @@
 .page {
-  max-width: 420px;
+  max-width: 520px;
   margin: 40px auto;
   padding: 0 16px;
 }
 
+/* Form layout */
 .form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-bottom: 16px;
+  gap: 12px;
+  margin-bottom: 20px;
 }
 
 label {
   font-weight: 600;
 }
 
-input {
-  padding: 8px;
+input,
+select,
+textarea {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font: inherit;
 }
 
+textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+/* Buttons */
 button,
 .button-link {
   display: inline-block;
-  padding: 8px 12px;
+  padding: 10px 14px;
   border: 1px solid #222;
   background: #f3f3f3;
   color: #111;
   text-decoration: none;
   cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.2s ease;
   width: fit-content;
 }
 
-.button-row {
-  display: flex;
-  gap: 10px;
-  margin-top: 12px;
+button:hover,
+.button-link:hover {
+  background: #e0e0e0;
 }
 
+button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Button row */
+.button-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+/* Inline row */
 .inline-row {
   display: flex;
   gap: 8px;
   align-items: center;
 }
 
+/* Card / result box */
 .settings-form {
-  margin-top: 16px;
+  margin-top: 20px;
   border: 1px solid #ccc;
-  padding: 12px;
+  padding: 16px;
+  border-radius: 8px;
+  background: #fafafa;
 }
 
+/* Tag list */
 .tag-list {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
+/* Tag chip */
 .tag-chip {
   border: 1px solid #666;
   background: #efefef;
   border-radius: 999px;
-  padding: 4px 10px;
+  padding: 5px 12px;
+  font-size: 14px;
 }
 
 .recommendation-card {
@@ -88,4 +121,14 @@ button,
 .recommendation-why {
   margin-top: 8px;
   color: #374151;
+}
+
+/* JSON result block */
+pre {
+  background: #f4f4f4;
+  padding: 12px;
+  border-radius: 8px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
