@@ -11,9 +11,15 @@ function UploadPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const token = localStorage.getItem("token");
 
     if (!image) {
       setResult({ error: "Please upload an image." });
+      return;
+    }
+
+    if (!token) {
+      setResult({ error: "Please log in again to upload items." });
       return;
     }
 
@@ -35,6 +41,9 @@ function UploadPage() {
     try {
       const response = await fetch("/api/items/analyze-image", {
         method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         body: formData,
       });
 
