@@ -7,21 +7,13 @@ function UploadPage() {
   const [description, setDescription] = useState("");
   const [brand, setBrand] = useState("");
   const [year, setYear] = useState("");
-  const [condition, setCondition] = useState("good");
+  const [condition, setCondition] = useState("used");
   const [category, setCategory] = useState("feeding");
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const handleImageChange = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setImage(file);
-    setResult(null);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const token = localStorage.getItem("token");
 
     if (!image) {
@@ -30,24 +22,23 @@ function UploadPage() {
     }
 
     if (!token) {
-      setResult({ error: "Please log in again to continue." });
+      setResult({ error: "Please log in again to upload items." });
       return;
     }
 
-    if (!brand.trim() || !year.trim()) {
+    if (!brand || !year) {
       setResult({ error: "Brand and year are required." });
       return;
     }
 
     const formData = new FormData();
     formData.append("image", image);
-    formData.append("itemName", itemName);
-    formData.append("description", description);
+    formData.append("text", itemName || description);
+    formData.append("condition", condition);
     formData.append("brand", brand);
     formData.append("year", year);
-    formData.append("condition", condition);
     formData.append("category", category);
-    formData.append("text", itemName || description);
+    formData.append("description", description);
 
     setLoading(true);
     setResult(null);
@@ -65,12 +56,11 @@ function UploadPage() {
       const data = rawText ? JSON.parse(rawText) : {};
 
       if (!response.ok) {
+        const errorMessage = [data.error || data.message, data.details]
+          .filter(Boolean)
+          .join(" ");
         setResult({
-          error:
-            data.error ||
-            data.message ||
-            data.details ||
-            "Something went wrong while analyzing the item.",
+          error: errorMessage || "Failed to upload item.",
         });
       } else {
         setResult(data);
@@ -83,45 +73,61 @@ function UploadPage() {
   };
 
   return (
-    <main className="upload-page">
-      <header className="upload-header">
-        <div className="upload-logo">LittleLoop</div>
+    <main className="page upload-layout">
+      <div className="upload-topbar">
+        <div className="brand-mark">
+          <div className="brand-logo-circle">◌</div>
+          <span>Logo Name</span>
+        </div>
 
-        <Link to="/dashboard" className="upload-back-link">
+        <Link className="button-link top-donate-link" to="/dashboard">
           Back
         </Link>
-      </header>
 
-      <section className="upload-intro">
-        <h1>Item Details</h1>
-        <p>Check item details before adding availability.</p>
+        <div className="brand-mark right">
+          <div className="brand-logo-circle">◌</div>
+        </div>
+      </div>
+
+      <section className="upload-hero">
+        <div>
+          <h1>Item Details</h1>
+          <p>Check item details.</p>
+        </div>
       </section>
 
-      <section className="upload-card">
-        <form className="upload-form" onSubmit={handleSubmit}>
-          <div className="upload-field full-width">
-            <label>Image</label>
+      <div className="upload-content-card">
+        <form className="form upload-form-grid" onSubmit={handleSubmit}>
+          <div className="field-group full-width">
+            <label>Images</label>
 
-            <label className="upload-image-box simple">
-              <input
-                type="file"
-                accept="image/*"
-                hidden
-                onChange={handleImageChange}
-              />
+            <div className="upload-image-grid">
+              <label className="upload-image-box upload-image-box-active">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setImage(e.target.files[0])}
+                  hidden
+                />
+                <span className="upload-image-icon">📷</span>
+                <span className="upload-image-title">
+                  {image ? image.name : "Add photos"}
+                </span>
+                <span className="upload-image-subtitle">Click to upload images</span>
+              </label>
 
-              <span className="upload-image-text">
-                {image ? image.name : "Add image"}
-              </span>
-
-              <span className="upload-image-subtext">Click to upload</span>
-            </label>
+              <div className="upload-image-box">
+                <span className="upload-image-icon">🖼️</span>
+                <span className="upload-image-title">Take Photo</span>
+                <span className="upload-image-subtitle">Tap to upload images</span>
+              </div>
+            </div>
           </div>
 
-          <div className="upload-field full-width">
-            <label htmlFor="itemName">Name</label>
+          <div className="field-group full-width">
+            <label htmlFor="item-name">Name</label>
             <input
-              id="itemName"
+              id="item-name"
               type="text"
               placeholder="Item name"
               value={itemName}
@@ -129,67 +135,63 @@ function UploadPage() {
             />
           </div>
 
-          <div className="upload-field full-width">
+          <div className="field-group full-width">
             <label>Condition</label>
-            <div className="chip-row">
+            <div className="choice-row">
               <button
                 type="button"
-                className={`chip ${condition === "new" ? "active" : ""}`}
+                className={`choice-chip ${condition === "new" ? "active" : ""}`}
                 onClick={() => setCondition("new")}
               >
                 New
               </button>
               <button
                 type="button"
-                className={`chip ${condition === "good" ? "active" : ""}`}
-                onClick={() => setCondition("good")}
+                className={`choice-chip ${condition === "used" ? "active" : ""}`}
+                onClick={() => setCondition("used")}
               >
                 Good
               </button>
               <button
                 type="button"
-                className={`chip ${condition === "like_new" ? "active" : ""}`}
+                className={`choice-chip ${condition === "like_new" ? "active" : ""}`}
                 onClick={() => setCondition("like_new")}
               >
                 Like New
               </button>
-              <button
-                type="button"
-                className={`chip ${condition === "fair" ? "active" : ""}`}
-                onClick={() => setCondition("fair")}
-              >
+              <button type="button" className="choice-chip">
                 Fair
               </button>
             </div>
           </div>
 
-          <div className="upload-field full-width">
+          <div className="field-group full-width">
             <label>Category</label>
-            <div className="chip-row">
+            <div className="choice-row">
               <button
                 type="button"
-                className={`chip ${category === "clothing" ? "active" : ""}`}
+                className={`choice-chip ${category === "clothing" ? "active" : ""}`}
                 onClick={() => setCategory("clothing")}
               >
                 Clothing
               </button>
               <button
                 type="button"
-                className={`chip ${category === "essentials" ? "active" : ""}`}
+                className={`choice-chip ${category === "essentials" ? "active" : ""}`}
                 onClick={() => setCategory("essentials")}
               >
                 Essentials
               </button>
               <button
                 type="button"
-                className={`chip ${category === "feeding" ? "active" : ""}`}
+                className={`choice-chip ${category === "feeding" ? "active" : ""}`}
                 onClick={() => setCategory("feeding")}
               >
                 Feeding
               </button>
               <button
                 type="button"
-                className={`chip ${category === "other" ? "active" : ""}`}
+                className={`choice-chip ${category === "other" ? "active" : ""}`}
                 onClick={() => setCategory("other")}
               >
                 Other
@@ -197,7 +199,7 @@ function UploadPage() {
             </div>
           </div>
 
-          <div className="upload-field">
+          <div className="field-group">
             <label htmlFor="brand">Brand</label>
             <input
               id="brand"
@@ -208,7 +210,7 @@ function UploadPage() {
             />
           </div>
 
-          <div className="upload-field">
+          <div className="field-group">
             <label htmlFor="year">Year</label>
             <input
               id="year"
@@ -219,7 +221,7 @@ function UploadPage() {
             />
           </div>
 
-          <div className="upload-field full-width">
+          <div className="field-group full-width">
             <label htmlFor="description">Description (optional)</label>
             <textarea
               id="description"
@@ -231,35 +233,35 @@ function UploadPage() {
           </div>
 
           {result?.error && (
-            <div className="result-box error full-width">
-              <h3>Error</h3>
+            <section className="settings-form error-box full-width">
+              <h2>Error</h2>
               <p>{result.error}</p>
-            </div>
+            </section>
           )}
 
           {result && !result.error && (
-            <div className="result-box success full-width">
-              <h3>AI Result</h3>
-              <p><strong>Status:</strong> {result.final_status || "N/A"}</p>
-              <p><strong>Reason:</strong> {result.final_reason || "N/A"}</p>
-              <p><strong>Detected Item:</strong> {result.item_name || "Unknown"}</p>
-              <p><strong>Detected Brand:</strong> {result.detected_brand || "Unknown"}</p>
-              <p><strong>Category:</strong> {result.category || category}</p>
-              <p><strong>Recall Status:</strong> {result.recall?.recall_status || "No recall result"}</p>
-            </div>
+            <section className="settings-form success-box full-width">
+              <h2>AI Result</h2>
+              <p><strong>Status:</strong> {result.final_status}</p>
+              <p><strong>Reason:</strong> {result.final_reason}</p>
+              <p><strong>Item Name:</strong> {result.item_name}</p>
+              <p><strong>Detected Brand:</strong> {result.detected_brand}</p>
+              <p><strong>Category:</strong> {result.category}</p>
+              <p><strong>Recall Status:</strong> {result.recall?.recall_status}</p>
+            </section>
           )}
 
-          <div className="upload-actions full-width">
-            <Link to="/dashboard" className="secondary-btn">
+          <div className="button-row upload-button-row full-width">
+            <Link className="button-link secondary-pill" to="/dashboard">
               Back
             </Link>
 
-            <button type="submit" className="primary-btn" disabled={loading}>
+            <button className="primary-pill" type="submit" disabled={loading}>
               {loading ? "Analyzing..." : "Add availability +"}
             </button>
           </div>
         </form>
-      </section>
+      </div>
     </main>
   );
 }
