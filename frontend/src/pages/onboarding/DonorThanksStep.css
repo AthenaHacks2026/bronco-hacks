@@ -1,0 +1,100 @@
+.donor-thanks-page {
+  min-height: 100vh;
+  background-color: #f4efe6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: Arial, sans-serif;
+}
+
+.donor-thanks-card {
+  background: #ffffff;
+  padding: 60px 80px;
+  border-radius: 18px;
+  text-align: center;
+  max-width: 700px;
+  width: 100%;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+.donor-thanks-title {
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin: 0 0 20px;
+  color: #111;
+}
+
+.donor-thanks-text {
+  font-size: 1.3rem;
+  color: #444;
+  margin-bottom: 10px;
+}
+
+.donor-thanks-subtext {
+  font-size: 1.1rem;
+  color: #6b7280;
+  margin-bottom: 30px;
+}
+
+.donor-thanks-message {
+  color: #b42318;
+  margin-bottom: 16px;
+}
+
+.donor-thanks-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.donor-back-button,
+.donor-continue-button {
+  border: none;
+  border-radius: 999px;
+  padding: 14px 32px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+/* Back button (gray pill) */
+.donor-back-button {
+  background: #e5e7eb;
+  color: #1f1f1f;
+}
+
+.donor-back-button:hover {
+  background: #d1d5db;
+}
+
+/* Continue button (green pill) */
+.donor-continue-button {
+  background: #88b184;
+  color: #ffffff;
+}
+
+.donor-continue-button:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.donor-continue-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .donor-thanks-card {
+    padding: 40px 20px;
+  }
+
+  .donor-thanks-title {
+    font-size: 2.5rem;
+  }
+
+  .donor-thanks-buttons {
+    flex-direction: column;
+  }
+}

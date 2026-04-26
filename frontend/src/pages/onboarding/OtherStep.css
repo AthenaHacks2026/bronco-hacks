@@ -1,0 +1,207 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f7f3ea;
+  color: #1f1f1f;
+}
+
+.onboarding-page {
+  min-height: 100vh;
+  background: #f7f3ea;
+}
+
+.top-bar {
+  padding: 28px 32px;
+}
+
+.logo-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.logo-text {
+  font-size: 1.7rem;
+  font-weight: 500;
+}
+
+.onboarding-container {
+  max-width: 760px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 40px 20px 80px;
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 34px;
+}
+
+.step {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+.step.completed {
+  background: #dc8f97;
+  color: white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.step.current {
+  background: #ffffff;
+  color: #dc8f97;
+  border: 2px solid #e1c7c9;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.step-line {
+  width: 52px;
+  height: 6px;
+  border-radius: 999px;
+}
+
+.step-line.active {
+  background: #dc8f97;
+}
+
+.step-line.inactive {
+  background: #ede7e1;
+  border: 1px solid #ddd2cd;
+}
+
+.onboarding-title {
+  font-size: 3rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.onboarding-subtitle {
+  margin-top: 10px;
+  margin-bottom: 44px;
+  font-size: 1.7rem;
+  color: #555;
+}
+
+.form-card {
+  background: #ffffff;
+  max-width: 700px;
+  margin: 0 auto 40px;
+  border-radius: 8px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+  padding: 24px 28px;
+  text-align: left;
+}
+
+.input-label {
+  display: block;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #555;
+  margin-bottom: 14px;
+}
+
+.input-row {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.age-input {
+  flex: 1;
+  min-width: 260px;
+  height: 56px;
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  padding: 0 16px;
+  font-size: 1.1rem;
+  outline: none;
+}
+
+.age-input:focus {
+  border-color: #dc8f97;
+  box-shadow: 0 0 0 3px rgba(220, 143, 151, 0.15);
+}
+
+.radio-group {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #444;
+}
+
+.radio-option input[type='radio'] {
+  accent-color: #dc8f97;
+  width: 18px;
+  height: 18px;
+}
+
+.button-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.back-btn,
+.continue-btn {
+  height: 54px;
+  border-radius: 999px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.back-btn {
+  width: 180px;
+  background: #ead7d2;
+  border: 1.5px solid #b7989d;
+  color: #1f1f1f;
+}
+
+.back-btn:hover {
+  transform: translateY(-1px);
+}
+
+.continue-btn {
+  flex: 1;
+  background: #dc8f97;
+  border: none;
+  color: white;
+}
+
+.continue-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  opacity: 0.95;
+}
+
+.continue-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}

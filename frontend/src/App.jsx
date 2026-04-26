@@ -4,7 +4,6 @@ import './App.css'
 
 import { INITIAL_ONBOARDING } from './constants/onboarding'
 
-import ProfilePage from './pages/ProfilePage'
 import DashboardPage from './pages/DashboardPage'
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
@@ -12,6 +11,9 @@ import SettingsPage from './pages/SettingsPage'
 import SignupPage from './pages/SignupPage'
 import UploadPage from './pages/UploadPage'
 
+import AllClothesPage from './pages/onboarding/AllClothesPage'
+import AllFeedingPage from './pages/onboarding/AllFeedingPage'
+import AllToysPage from './pages/onboarding/AllToysPage'
 import CaregiverInfoStep from './pages/onboarding/CaregiverInfoStep'
 import DonorInfoStep from './pages/onboarding/DonorInfoStep'
 import DonorThanksStep from './pages/onboarding/DonorThanksStep'
@@ -169,9 +171,12 @@ function App() {
           element={<RecommendationsStep submitOnboarding={submitOnboarding} />}
         />
 
+        <Route path="/items/clothes" element={<AllClothesPage />} />
+        <Route path="/items/toys" element={<AllToysPage />} />
+        <Route path="/items/feeding" element={<AllFeedingPage />} />
+
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/upload" element={<UploadPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
         <Route path="/settings" element={<SettingsPage />} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
